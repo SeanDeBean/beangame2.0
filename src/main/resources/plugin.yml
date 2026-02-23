@@ -1,0 +1,72 @@
+name: beangame-core
+main: com.beangamecore.Main
+version: 1.3.0
+api-version: 1.21.4
+authors: [ SeanDeBean, starlitembers ]
+description: omg i love that game
+depend:
+  - NBTAPI
+  - voicechat
+commands:
+  bg:
+    permission: bg.use
+  bgdeathspectate:
+    permission: bg.use
+    aliases:
+      - deathspectate
+  bgdistribute:
+    permission: bg.use
+  bgdistributefood:
+    permission: bg.use
+  bggrantrefund:
+    permission: bg.use
+    aliases:
+      - grantrefund
+  bgguidebook:
+    aliases:
+      - guidebook
+  bgitemlist:
+    permission: bg.use
+    aliases:
+      - itemlist
+  bgactiveitemlist:
+    aliases:
+      - activeitemlist
+  bgrandomizer:
+    permission: bg.use
+    aliases:
+      - randomizer
+  bgquickcooldown:
+    permission: bg.use
+    aliases:
+      - quickcooldown
+  bgexec:
+    permission: bg.use
+    aliases:
+      - exec
+  bgmute:
+    permission: bg.use
+    aliases:
+      - mute
+  bgrefund:
+    aliases:
+      - refund
+  bgstart:
+    permission: bg.use
+  bgswapinventories:
+    permission: bg.use
+    aliases:
+      - swapinventories
+  pvptoggle:
+    permission: bg.use
+    aliases:
+      - bgpvptoggle
+  bgautoroll:
+    permission: bg.use
+    aliases:
+      - autoroll
+  bginvsee:
+    aliases:
+      - invsee
+      - inventorysee
+  
