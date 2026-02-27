@@ -9,8 +9,6 @@ import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -48,42 +46,6 @@ public class SealOfTheSchizophrenic extends BeangameItem implements BGVoicechat,
     public void applyTalismanEffects(Player player, ItemStack item) {
         UUID uuid = player.getUniqueId();
         Cooldowns.setCooldown("schizophrenic", uuid, 2000L);
-
-        createEyeVisuals(player);
-    }
-
-    private void createEyeVisuals(Player affectedPlayer) {
-        Location playerLoc = affectedPlayer.getLocation();
-        World world = playerLoc.getWorld();
-        
-        for (int i = 0; i < 4; i++) {
-            double angle = 2 * Math.PI * i / 4; 
-            double x = playerLoc.getX() + Math.cos(angle) * 0.4;
-            double y = playerLoc.getY() + 2.2;
-            double z = playerLoc.getZ() + Math.sin(angle) * 0.4;
-            
-            Location eyeLoc = new Location(world, x, y, z);
-            
-            for(Player target: Bukkit.getOnlinePlayers()){
-                if(target.getGameMode().equals(GameMode.SPECTATOR) && target.getWorld().equals(affectedPlayer.getWorld()) && target.getLocation().distance(affectedPlayer.getLocation()) < 16){
-                    target.spawnParticle(Particle.END_ROD, eyeLoc, 2, 0.1, 0.1, 0.1, 0);
-                }
-            }
-        }
-        
-        for (int i = 0; i < 3; i++) {
-            double offsetX = (Math.random() - 0.5) * 0.5;
-            double offsetZ = (Math.random() - 0.5) * 0.5;
-            
-            Location dripLoc = playerLoc.clone().add(offsetX, 2.0, offsetZ);
-            
-
-            for(Player target: Bukkit.getOnlinePlayers()){
-                if(target.getGameMode().equals(GameMode.SPECTATOR) && target.getWorld().equals(affectedPlayer.getWorld()) && target.getLocation().distance(affectedPlayer.getLocation()) < 16){
-                    target.spawnParticle(Particle.DRIPPING_DRIPSTONE_LAVA, dripLoc, 1, 0, 0.1, 0, 0.05);
-                }
-            }
-        }
     }
 
     @Override

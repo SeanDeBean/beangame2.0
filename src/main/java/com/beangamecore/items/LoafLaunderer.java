@@ -85,7 +85,7 @@ public class LoafLaunderer extends BeangameItem implements BGConsumableI, BGDama
         Location blockLocation = center.clone().add(x, y, z);
         Block block = blockLocation.getBlock();
         Material type = block.getType();
-        if (!BlockCategories.functionalblock.contains(type)) {
+        if (!BlockCategories.getFunctionalBlocks().contains(type)) {
             block.setType(Material.HAY_BLOCK);
         }
     }

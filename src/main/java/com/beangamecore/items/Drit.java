@@ -75,7 +75,7 @@ public class Drit extends BeangameItem implements BGProjectileI, BGRClickableI {
         Material blockType = world.getBlockAt(x, y, z).getType();
 
         // Check if the block is functional (using Set for constant-time lookup)
-        if (BlockCategories.functionalblock.contains(blockType)) {
+        if (BlockCategories.getFunctionalBlocks().contains(blockType)) {
             return; // Skip functional blocks
         }
 

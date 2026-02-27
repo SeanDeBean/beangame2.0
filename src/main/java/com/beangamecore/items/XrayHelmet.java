@@ -1,11 +1,9 @@
 package com.beangamecore.items;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -30,7 +28,6 @@ import org.bukkit.potion.PotionEffectType;
 import com.beangamecore.events.ServerLoad;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGArmorI;
-import com.beangamecore.util.BlockCategories;
 
 public class XrayHelmet extends BeangameItem implements BGArmorI {
     
@@ -93,7 +90,6 @@ public class XrayHelmet extends BeangameItem implements BGArmorI {
 
     private List<Block> getOres(Location loc, int radius) {
         List<Block> ores = new ArrayList<>();
-        Set<Material> oreSet = new HashSet<>(BlockCategories.ores); // Use a Set for fast lookup
 
         int px = loc.getBlockX();
         int py = loc.getBlockY();
@@ -103,25 +99,23 @@ public class XrayHelmet extends BeangameItem implements BGArmorI {
         if (world == null)
             return ores; // Prevent potential NullPointerException
 
-        scanCubeForOres(world, px, py, pz, radius, oreSet, ores);
+        scanCubeForOres(world, px, py, pz, radius, ores);
         return ores;
     }
 
-    private void scanCubeForOres(World world, int originX, int originY, int originZ, int radius, Set<Material> oreSet,
-            List<Block> ores) {
+    private void scanCubeForOres(World world, int originX, int originY, int originZ, int radius, List<Block> ores) {
         for (int x = -radius; x <= radius; x++) {
             for (int y = -radius; y <= radius; y++) {
                 for (int z = -radius; z <= radius; z++) {
-                    processBlock(world, originX, originY, originZ, x, y, z, oreSet, ores);
+                    processBlock(world, originX, originY, originZ, x, y, z, ores);
                 }
             }
         }
     }
 
-    private void processBlock(World world, int originX, int originY, int originZ, int offsetX, int offsetY, int offsetZ,
-            Set<Material> oreSet, List<Block> ores) {
+    private void processBlock(World world, int originX, int originY, int originZ, int offsetX, int offsetY, int offsetZ, List<Block> ores) {
         Block block = world.getBlockAt(originX + offsetX, originY + offsetY, originZ + offsetZ);
-        if (oreSet.contains(block.getType())) {
+        if (block.getType().toString().toLowerCase().contains("_ore")) {
             ores.add(block);
         }
     }

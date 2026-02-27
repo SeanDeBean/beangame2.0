@@ -2,7 +2,7 @@ name: beangame-core
 main: com.beangamecore.Main
 version: 1.3.0
 api-version: 1.21.4
-authors: [ SeanDeBean, starlitembers ]
+authors: [ SeanDeBean ]
 description: omg i love that game
 depend:
   - NBTAPI

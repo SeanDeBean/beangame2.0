@@ -59,7 +59,7 @@ public class MysticBloom extends BeangameItem implements BGRClickableI {
     }
 
     private boolean isInvalidFlowerLocation(Location flowerLocation) {
-        return BlockCategories.functionalblock.contains(flowerLocation.getBlock().getType());
+        return BlockCategories.getFunctionalBlocks().contains(flowerLocation.getBlock().getType());
     }
 
     private void placeMysticFlower(Location flowerLocation, Player player, UUID uuid, Location location) {

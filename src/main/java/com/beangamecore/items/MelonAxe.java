@@ -33,7 +33,7 @@ public class MelonAxe extends BeangameItem implements BGRClickableI, BGDDealerHe
             return true;
         }
         Material type = clickedBlock.getType();
-        for (Material functionalblocks : BlockCategories.functionalblock) {
+        for (Material functionalblocks : BlockCategories.getFunctionalBlocks()) {
             if (type == functionalblocks) {
                 return false;
             }

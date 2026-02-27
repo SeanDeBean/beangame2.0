@@ -30,6 +30,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.beangamecore.LevelingSystem;
 import com.beangamecore.Main;
 import com.beangamecore.data.DatabaseManager;
 import com.beangamecore.items.BorderManipulator;
@@ -437,11 +438,13 @@ public class BeangameStart implements CommandExecutor{
                     gamerunning = false;
                     autoroll = false;
                     stopAutorollTask();
+                    LevelingSystem ls = Main.getPlugin().getLevelingSystem();
                     if(getAlivePlayerCount(Bukkit.getWorld("beangame-world")) == 1){
                         String winner = "Nobody";
                         for(Player p : Bukkit.getOnlinePlayers()){
                             if(BeangameStart.alivePlayers.contains(p.getUniqueId())){
                                 winner = p.getName();
+                                ls.onWin(p);
                                 for(ItemStack item : p.getInventory()){
                                     if(item == null || item.getType().equals(Material.AIR)){
                                         continue;
@@ -462,11 +465,15 @@ public class BeangameStart implements CommandExecutor{
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             player.getWorld().playSound(player.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_1, 1.0F, 1.0F);
                             player.sendTitle(null, "§2" + winner + " has won!", 20, 100, 20);
+                            if(winner != player.getName()){
+                                ls.onLoss(player);
+                            }
                         }
                     } else {
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             player.getWorld().playSound(player.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_1, 1.0F, 1.0F);
                             player.sendTitle(null, "§2Nobody has won!", 20, 100, 20);
+                            ls.onLoss(player);
                         }
                     }
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "title @a title {\"text\":\"\u0030\",\"font\":\"customfont:images\"}");

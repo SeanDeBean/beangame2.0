@@ -2,7 +2,6 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGToolI;
-import com.beangamecore.util.BlockCategories;
 
 import java.util.List;
 import java.util.Map;
@@ -92,10 +91,16 @@ public class MoltenPickaxe extends BeangameItem implements BGToolI {
     }
 
     private void handleOtherBlocks(BlockBreakEvent event, World world, Location loc, Material type, Integer amount) {
-        if (BlockCategories.logs.contains(type)) {
+        String str = type.toString().toLowerCase();
+        if (isLogType(str)) {
             event.setDropItems(false); // Prevent regular drops
             world.dropItemNaturally(loc, new ItemStack(Material.CHARCOAL, amount)); // Drop charcoal instead
         }
+    }
+
+    private boolean isLogType(String str){
+        if(str.contains("_log") || str.contains("_wood") || str.contains("_stem") || str.contains("hyphae")) return true;
+        return false;
     }
     
     @Override

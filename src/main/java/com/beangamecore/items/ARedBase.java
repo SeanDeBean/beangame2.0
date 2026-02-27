@@ -287,7 +287,7 @@ public class ARedBase extends BeangameItem implements BGRClickableI {
 
     private static void placeBlockAt(Block block, Material material){
         Material type = block.getType();
-        for (Material functionalblocks : BlockCategories.functionalblock){
+        for (Material functionalblocks : BlockCategories.getFunctionalBlocks()){
             if(type == functionalblocks){
                 return;
             }

@@ -23,6 +23,7 @@ import org.bukkit.potion.PotionEffect;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerHeldI;
 import com.beangamecore.util.Cooldowns;
+import com.beangamecore.util.PotionCategories;
 
 public class CoconutMilkCutlass extends BeangameItem implements BGDDealerHeldI {
     
@@ -43,13 +44,9 @@ public class CoconutMilkCutlass extends BeangameItem implements BGDDealerHeldI {
 
         if (entity instanceof Player player) {
             UUID uuid = player.getUniqueId();
-            Cooldowns.setCooldown("silenced", uuid, 0);
-            Cooldowns.setCooldown("schizophrenic", uuid, 0);
-            Cooldowns.setCooldown("use_item", uuid, 0);
-            Cooldowns.setCooldown("slot_enforced", uuid, 0);
-            Cooldowns.setCooldown("immobilized", uuid, 0);
-            Cooldowns.setCooldown("jumbling", uuid, 0);
-            Cooldowns.setCooldown("redacted", uuid, 0);
+            for (String harmfulCustomPotions : PotionCategories.getHarmfulCustomPotions()) {
+                Cooldowns.setCooldown(harmfulCustomPotions, uuid, 0);
+            }
         }
 
         DustOptions whiteDust = new DustOptions(Color.fromRGB(255, 255, 255), 1.2f);

@@ -24,19 +24,15 @@ public class Infinimilk extends BeangameItem implements BGConsumableI {
     public void onConsume(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
 
-        PotionCategories.harmfulPotions.forEach(player::removePotionEffect);
+        PotionCategories.getHarmfulPotions().forEach(player::removePotionEffect);
 
         // Set fire ticks to 0
         player.setFireTicks(0);
 
         UUID uuid = player.getUniqueId();
-        Cooldowns.setCooldown("silenced", uuid, 0);
-        Cooldowns.setCooldown("schizophrenic", uuid, 0);
-        Cooldowns.setCooldown("use_item", uuid, 0);
-        Cooldowns.setCooldown("slot_enforced", uuid, 0);
-        Cooldowns.setCooldown("immobilized", uuid, 0);
-        Cooldowns.setCooldown("jumbling", uuid, 0);
-        Cooldowns.setCooldown("redacted", uuid, 0);
+        for (String harmfulCustomPotions : PotionCategories.getHarmfulCustomPotions()) {
+            Cooldowns.setCooldown(harmfulCustomPotions, uuid, 0);
+        }
 
         // Optionally cancel event after handling
         event.setCancelled(true);

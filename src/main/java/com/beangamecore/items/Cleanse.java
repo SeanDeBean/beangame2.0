@@ -53,17 +53,14 @@ public class Cleanse extends BeangameItem implements BGRClickableI {
         player.getWorld().playSound(loc, Sound.ENTITY_FOX_SLEEP, 1.0F, 1.0F);
         
         // Remove harmful potion effects in one step using a loop
-        PotionCategories.harmfulPotions.forEach(player::removePotionEffect);
+        PotionCategories.getHarmfulPotions().forEach(player::removePotionEffect);
 
         // Clear fire and custom status
         player.setFireTicks(0);
-        Cooldowns.setCooldown("silenced", uuid, 0);
-        Cooldowns.setCooldown("schizophrenic", uuid, 0);
-        Cooldowns.setCooldown("use_item", uuid, 0);
-        Cooldowns.setCooldown("slot_enforced", uuid, 0);
-        Cooldowns.setCooldown("immobilized", uuid, 0);
-        Cooldowns.setCooldown("jumbling", uuid, 0);
-        Cooldowns.setCooldown("redacted", uuid, 0);
+
+        for (String harmfulCustomPotions : PotionCategories.getHarmfulCustomPotions()) {
+            Cooldowns.setCooldown(harmfulCustomPotions, uuid, 0);
+        }
 
         animateCleanse(player);
 

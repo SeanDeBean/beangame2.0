@@ -2,7 +2,6 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGToolI;
-import com.beangamecore.util.BlockCategories;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -26,7 +25,7 @@ public class AppleCutters extends BeangameItem implements BGToolI {
         Material type = block.getType();
 
         // Use a Set for BlockCategories.leaves for faster lookup if not already a Set
-        if (BlockCategories.leaves.contains(type)) {
+        if (type.toString().toLowerCase().contains("_leaves")) {
             event.setDropItems(false);
             if (ThreadLocalRandom.current().nextDouble() <= 0.4) {
                 block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(Material.APPLE));

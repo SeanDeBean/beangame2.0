@@ -32,7 +32,7 @@ public class Protato extends BeangameItem implements BGRClickableI {
         Block clickedBlock = event.getClickedBlock();
         if(clickedBlock != null && clickedBlock.getType() != Material.AIR){
             Material type = clickedBlock.getType();
-            for (Material functionalblocks : BlockCategories.functionalblock){
+            for (Material functionalblocks : BlockCategories.getFunctionalBlocks()){
                 if(type == functionalblocks){
                     return false;
                 }

@@ -48,7 +48,7 @@ public class BouncyShield extends BeangameItem implements BGDReceiverHeldI, BGHe
                 Block targetBlock = world.getBlockAt(blockLoc);
                 
                 // Only replace if it's not air (so we don't place slime in empty space)
-                if (targetBlock.getType() != Material.AIR && !BlockCategories.functionalblock.contains(targetBlock.getType())) {
+                if (targetBlock.getType() != Material.AIR && !BlockCategories.getFunctionalBlocks().contains(targetBlock.getType())) {
                     targetBlock.setType(Material.SLIME_BLOCK);
                     target = targetBlock.getLocation();
                     slimePlaced = true;

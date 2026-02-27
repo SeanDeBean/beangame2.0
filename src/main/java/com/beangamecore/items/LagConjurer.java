@@ -2,7 +2,6 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGToolI;
-import com.beangamecore.util.BlockCategories;
 
 import java.util.List;
 import java.util.Map;
@@ -31,21 +30,21 @@ public class LagConjurer extends BeangameItem implements BGToolI {
         Material type = block.getType();
 
         // Use HashSet for faster lookup if BlockCategories.ores is a list
-        if (BlockCategories.ores.contains(type)) {
-            // Generate a random value once
-            if (Math.random() < 0.30D) {
-                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), new Runnable(){
-                    public void run(){
-                        block.setType(type);
-                        Location min = block.getLocation();
-                        Location max = min.clone().add(1.0, 1.0, 1.0);
-                        Main.getPlugin().getParticleManager().particleCube(min, max, 30, 144, 255);
-                        block.getWorld().playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0F, 1.0F);
-                    }     
-                }, 1L);
-            }
+        if (type.toString().toLowerCase().contains("_ore") && Math.random() < 0.30D) {
+            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), new Runnable(){
+                public void run(){
+                    block.setType(type);
+                    Location min = block.getLocation();
+                    Location max = min.clone().add(1.0, 1.0, 1.0);
+                    Main.getPlugin().getParticleManager().particleCube(min, max, 30, 144, 255);
+                    block.getWorld().playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0F, 1.0F);
+                }     
+            }, 1L);
+    
         }
     }
+
+    
 
     @Override
     public long getBaseCooldown() {

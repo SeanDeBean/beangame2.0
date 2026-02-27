@@ -2,12 +2,9 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGToolI;
-import com.beangamecore.util.BlockCategories;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -26,20 +23,18 @@ public class ExplosivePickaxe extends BeangameItem implements BGToolI {
     public void onBlockBreak(BlockBreakEvent event, ItemStack stack) {
         Block block = event.getBlock();
         Material type = block.getType();
-        
-        // Use a Set for fast lookups (done once during initialization)
-        Set<Material> naturalBlockSet = new HashSet<>(BlockCategories.naturalblocks);
 
-        // Check if the block type is in the naturalBlockSet
-        if (naturalBlockSet.contains(type)) {
-            event.setCancelled(true);
-            
-            // Create explosion at the block's location
-            Location loc = block.getLocation().add(0.5, 0.5, 0.5);
-            
-            // Create explosion with player as the cause
-            loc.getWorld().createExplosion(loc, 7, false, true, event.getPlayer());
+        if(!type.isSolid() || type.isAir()){
+            return;
         }
+        
+        event.setCancelled(true);
+            
+        // Create explosion at the block's location
+        Location loc = block.getLocation().add(0.5, 0.5, 0.5);
+            
+        // Create explosion with player as the cause
+        loc.getWorld().createExplosion(loc, 5, false, true, event.getPlayer());
     }
 
     @Override

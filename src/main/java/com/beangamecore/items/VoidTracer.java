@@ -301,7 +301,6 @@ public class VoidTracer extends BeangameItem implements BGLClickableI, BGRClicka
                 Location particleLoc = baseNode.clone().add(0, y, 0);
                 
                 // Base node particles with vertical variation
-                double verticalPulse = Math.sin(time * 0.15 + y * 0.5) * 0.3 + 0.7;
                 float particleSize = (float)(1.5f + pulse * 0.5f);
                 
                 player.getWorld().spawnParticle(Particle.DUST, particleLoc, 1,

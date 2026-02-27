@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.beangamecore.LevelingSystem;
+import com.beangamecore.Main;
 import com.beangamecore.commands.BeangameStart;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.registry.BeangameItemRegistry;
@@ -69,6 +71,7 @@ public class Revive extends BeangameItem implements BGRClickableI {
             ItemStack food = foods.get(rindex).asItem();
             owner.getInventory().addItem(food);
             player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1, 0);
+            Main.getPlugin().getLevelingSystem().onRevive(player);
         } else {
             return;
         }

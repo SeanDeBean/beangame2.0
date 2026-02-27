@@ -59,7 +59,7 @@ public class Oobmab extends BeangameItem implements BGRClickableI {
     }
 
     private boolean isFunctionalBlock(Material material) {
-        for (Material functionalblocks : BlockCategories.functionalblock) {
+        for (Material functionalblocks : BlockCategories.getFunctionalBlocks()) {
             if (material == functionalblocks) {
                 return true;
             }

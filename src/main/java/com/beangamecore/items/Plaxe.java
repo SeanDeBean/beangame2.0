@@ -2,7 +2,6 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGToolI;
-import com.beangamecore.util.BlockCategories;
 
 import java.util.List;
 import java.util.Map;
@@ -31,10 +30,15 @@ public class Plaxe extends BeangameItem implements BGToolI {
             return;
         }
         // checks all the leaf types
-        if (BlockCategories.logs.contains(type)) {
+        if (isLogType(type.toString().toLowerCase())) {
             handleLogBlockBreak(event, world, loc, type);
             return;
         }
+    }
+
+    private boolean isLogType(String str){
+        if(str.contains("_log") || str.contains("_wood") || str.contains("_stem") || str.contains("hyphae")) return true;
+        return false;
     }
 
     private void handleLogBlockBreak(BlockBreakEvent event, World world, Location loc, Material type) {

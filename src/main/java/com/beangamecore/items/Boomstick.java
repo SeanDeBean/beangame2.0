@@ -42,7 +42,7 @@ public class Boomstick extends BeangameItem implements BGRClickableI {
         Material type = clickedBlock.getType();
 
         // Check if the clicked block is in the functional blocks category
-        if (BlockCategories.functionalblock.contains(type) || type.equals(Material.TNT)) {
+        if (BlockCategories.getFunctionalBlocks().contains(type) || type.equals(Material.TNT)) {
             return false;
         }
 

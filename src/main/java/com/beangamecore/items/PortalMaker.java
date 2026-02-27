@@ -55,7 +55,7 @@ public class PortalMaker extends BeangameItem implements BGRClickableI {
             return false;
         }
         
-        if (BlockCategories.functionalblock.contains(type)) return false;
+        if (BlockCategories.getFunctionalBlocks().contains(type)) return false;
 
         // Valid placement - handle portal creation
         int portalCount = getPlayerPortalCount(player);

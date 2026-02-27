@@ -57,7 +57,7 @@ public class Holewand extends BeangameItem implements BGProjectileI, BGRClickabl
         roundLocation(loc);
 
         // Use a Set for faster lookups (only need to do this once)
-        Set<Material> functionalBlockSet = new HashSet<>(BlockCategories.functionalblock);
+        Set<Material> functionalBlockSet = new HashSet<>(BlockCategories.getFunctionalBlocks());
 
         processBlocksInRadius(loc, world, functionalBlockSet);
     }

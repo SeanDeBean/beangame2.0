@@ -40,6 +40,11 @@ import de.maxhenkel.voicechat.api.BukkitVoicechatService;
 
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,6 +61,7 @@ public class Main extends JavaPlugin {
   private SeaCreatureRegistry seaCreatureRegistry;
   private BeangameParticleManager particleManager;
   private static MultiverseCore multiverseCore;
+  private LevelingSystem levelingSystem;
   
     // Get the plugin instance safely
     public static Main getPlugin() {
@@ -94,9 +100,15 @@ public class Main extends JavaPlugin {
       return multiverseCore;
     }
 
+    public LevelingSystem getLevelingSystem() {
+        return levelingSystem;
+    }
+
   @Override
   public void onEnable() {
       plugin = this;
+
+      setupLevelingSystem();
 
       getServer().getServicesManager().getKnownServices().forEach(service -> {
         logger().info("Registered Service: " + service.getName() + " | ClassLoader: " + service.getClass().getClassLoader());
@@ -140,6 +152,29 @@ public class Main extends JavaPlugin {
       logger().info("Beangame Enabled");
   }
 
+  private void setupLevelingSystem(){
+    levelingSystem = new LevelingSystem();
+
+    getServer().getPluginManager().registerEvents(new Listener() {
+        @EventHandler
+        public void onJoin(PlayerJoinEvent event) {
+            levelingSystem.loadPlayer(event.getPlayer());
+        }
+            
+        @EventHandler
+        public void onQuit(PlayerQuitEvent event) {
+            levelingSystem.unloadPlayer(event.getPlayer());
+        }
+    }, this);
+        
+    // Periodic save every 5 minutes
+    Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            levelingSystem.savePlayer(player);
+        }
+    }, 6000L, 6000L);
+  }
+
   private void registerSeaCreatures() {
       SeaCreatureRegistry.registerSeaCreature(new GuardianPopsicle());
   }
@@ -147,6 +182,9 @@ public class Main extends JavaPlugin {
   @Override
   public void onDisable() {
       dataAPI.saveData(cfgFile, config);
+      for (Player player : Bukkit.getOnlinePlayers()) {
+        levelingSystem.unloadPlayer(player);
+      }
       DatabaseManager.shutdown();
       seaCreatureRegistry.clearRegistry();
       new ResetItems().resetAllItems();
