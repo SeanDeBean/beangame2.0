@@ -1,5 +1,6 @@
 package com.beangamecore.events;
 
+import com.beangamecore.commands.PvpToggleCommand;
 import com.beangamecore.items.SentientBeehive;
 import com.beangamecore.items.WitherScepter;
 import com.beangamecore.registry.BeangameItemRegistry;
@@ -9,6 +10,8 @@ import com.beangamecore.util.ItemNBT;
 
 import java.util.UUID;
 
+import org.bukkit.entity.EnderCrystal;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -67,6 +70,8 @@ public class EntityDamageByEntity implements Listener {
         SentientBeehive.resetStinger(event); // keeps the bees aggressive
         WitherScepter.resetEffect(event); // resets the wither duration
 
+        if(event.getEntity() instanceof Item || event.getEntity() instanceof EnderCrystal) return;
+
         // Attacker logic
         if (event.getDamager() instanceof LivingEntity attacker) {
             EntityEquipment equipment = attacker.getEquipment();
@@ -95,7 +100,7 @@ public class EntityDamageByEntity implements Listener {
             if (attacker instanceof Player attackerPlayer) {
                 // Apply movement item damage cooldown
                 UUID auuid = attackerPlayer.getUniqueId();
-                if (!event.isCancelled()) Cooldowns.setCooldown("attack", auuid, 1500);
+                if (!event.isCancelled() && (PvpToggleCommand.pvp || !attackerPlayer.getWorld().getName().equals("lobby"))) Cooldowns.setCooldown("attack", auuid, 1500);
 
                 PlayerInventory attackerInventory = attackerPlayer.getInventory();
                 for (ItemStack item : attackerInventory.getContents()) {

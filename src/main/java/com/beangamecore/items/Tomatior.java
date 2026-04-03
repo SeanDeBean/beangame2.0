@@ -8,6 +8,8 @@ import java.util.UUID;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGConsumableI;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -23,13 +25,14 @@ import com.beangamecore.Main;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class Tomatior extends BeangameItem implements BGConsumableI, BGRClickableI {
+public class Tomatior extends BeangameItem implements BGConsumableI, BGRClickableI, BGResetableI {
     
-    private static final Map<UUID, Integer> tomatiorcount = new HashMap<>();
-
-    public void resetTomatior(){
+    @Override
+    public void resetItem(){
         tomatiorcount.clear();
     }
+
+    private static final Map<UUID, Integer> tomatiorcount = new HashMap<>();
 
     @Override
     public void onConsume(PlayerItemConsumeEvent event) {

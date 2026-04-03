@@ -1,23 +1,20 @@
 package com.beangamecore.items.material;
 
 import com.beangamecore.items.generic.BeangameItem;
-import com.beangamecore.items.type.BGRClickableI;
 import com.beangamecore.items.type.BeangameSoftItem;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.CraftingRecipe;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
 import java.util.List;
 import java.util.Map;
 
-public class Soul extends BeangameItem implements BGRClickableI, BeangameSoftItem {
+public class Soul extends BeangameItem implements BeangameSoftItem {
     
     @Override
     public long getBaseCooldown() {
@@ -94,10 +91,5 @@ public class Soul extends BeangameItem implements BGRClickableI, BeangameSoftIte
         return 32;
     }
 
-    @Override
-    public boolean onRightClick(PlayerInteractEvent event, ItemStack stack) {
-        event.setCancelled(true);
-        return false;
-    }
 }
 

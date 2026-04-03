@@ -21,11 +21,12 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGArmorI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.items.type.move.BGMoveArmorI;
 import com.beangamecore.registry.BeangameItemRegistry;
 import com.beangamecore.util.ItemNBT;
 
-public class RunningShoes extends BeangameItem implements BGMoveArmorI, BGArmorI {
+public class RunningShoes extends BeangameItem implements BGMoveArmorI, BGArmorI, BGResetableI {
 
     @Override
     public void applyArmorEffects(Player player, ItemStack item) {
@@ -109,7 +110,8 @@ public class RunningShoes extends BeangameItem implements BGMoveArmorI, BGArmorI
         armor.setItemMeta(meta);
     }
 
-    public void resetAllPlayers() {
+    @Override
+    public void resetItem() {
         playerDistances.clear();
         playerProtectionLevels.clear();
     }

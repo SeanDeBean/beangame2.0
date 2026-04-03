@@ -7,8 +7,6 @@ import com.beangamecore.items.type.BGArmorI;
 import java.util.List;
 import java.util.Map;
 
-import de.tr7zw.nbtapi.NBT;
-
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -26,16 +24,17 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 
 public class CarrotSlides extends BeangameItem implements BGArmorI {
     
-    public ItemStack asItem(){
-        ItemStack stack = new ItemStack(getMaterial(), getCraftingAmount());
-        Main.getConfiguration().applyMeta(stack, getKey());
-        NBT.modify(stack, (nbt) -> {
-            nbt.setString("beangame.itemkey", getKey().toString());
-        });
+    @Override
+    public ItemStack asItem() {
+        // Get the base item from parent (handles brangame check)
+        ItemStack stack = super.asItem();
+        
+        // Apply your custom modifications
         ItemMeta meta = stack.getItemMeta();
         NamespacedKey nsk = new NamespacedKey(Main.getPlugin(), "beangame.carrotslides");
         meta.addAttributeModifier(Attribute.MOVEMENT_SPEED, new AttributeModifier(nsk, 0.012, AttributeModifier.Operation.ADD_SCALAR, EquipmentSlotGroup.FEET));
         stack.setItemMeta(meta);
+        
         return stack;
     }
 

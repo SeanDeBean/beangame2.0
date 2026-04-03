@@ -19,8 +19,9 @@ import org.bukkit.util.Vector;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 
-public class TennisBallItem extends BeangameItem implements BGRClickableI {
+public class TennisBallItem extends BeangameItem implements BGRClickableI, BGResetableI {
     
     @Override
     public boolean onRightClick(PlayerInteractEvent event, ItemStack stack) {
@@ -41,7 +42,8 @@ public class TennisBallItem extends BeangameItem implements BGRClickableI {
         return true;
     }
 
-    public void removeAllTennisBalls(){
+    @Override
+    public void resetItem(){
         for(TennisBall tennisball : TennisBall.getTennisBalls()){
             tennisball.remove(true);
         }

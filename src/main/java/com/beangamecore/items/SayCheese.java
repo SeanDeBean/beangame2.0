@@ -27,24 +27,19 @@ import org.bukkit.util.Vector;
 
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
-import com.beangamecore.items.type.BGLClickableI;
 import com.beangamecore.items.type.BGRClickableI;
 import com.beangamecore.util.Cooldowns;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickableI {
+public class SayCheese extends BeangameItem implements BGRClickableI {
     
     // ============ CONFIGURABLE SETTINGS ============
     private static final int SNAPSHOT_RANGE = 48;           // Blocks
-    private static final int SNAPSHOT_DURATION_TICKS = 240; // 12 seconds (12 * 20)
-    private static final int SELECTION_RANGE = 64;          // Max selection distance from player
-    private static final double SELECTION_ANGLE = 0.3;      // Cone angle for targeting (radians)
+    private static final int SNAPSHOT_DURATION_TICKS = 30;
     private static final double SNAPSHOT_VIEW_ANGLE = Math.toRadians(45); // 45 degrees in radians
     private static final Color BORDER_COLOR = Color.fromRGB(255, 255, 200);
-    private static final Color GLOW_COLOR_GREEN = Color.fromRGB(50, 255, 100);
-    private static final Color VALID_AREA_COLOR = Color.fromRGB(100, 255, 100);
     private static final Color CONE_OUTLINE_COLOR = Color.fromRGB(255, 255, 150);
     
     // Immobilization settings
@@ -63,9 +58,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         final Map<UUID, Location> originalLocations = new ConcurrentHashMap<>();
         final Map<UUID, Double> entityPlayerDistances = new ConcurrentHashMap<>();
         final Map<UUID, Integer> originalTntFuse = new ConcurrentHashMap<>();
-        Entity selectedEntity = null;
-        double selectedDistance = 0;
-        boolean selectingDestination = false;
         int taskId = -1;
         int coneTaskId = -1;
         
@@ -97,34 +89,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         takeSnapshot(player);
         return true;
     }
-    
-    @Override
-    public void onLeftClick(PlayerInteractEvent event, ItemStack stack) {
-        Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-        SnapshotSession session = activeSessions.get(uuid);
-        
-        if (session == null) return;
-        event.setCancelled(true);
-        
-        if (!session.selectingDestination) {
-            Entity target = getTargetedEntity(player, session);
-            if (target != null) {
-                selectEntity(session, target, player);
-            } else {
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    TextComponent.fromLegacy("§eLook at a frozen entity to select it"));
-            }
-        } else {
-            Location dest = calculateDestination(player, session);
-            if (dest != null) {
-                executeMove(player, session, dest);
-            } else {
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    TextComponent.fromLegacy("§eLook at a valid direction for placement"));
-            }
-        }
-    }
 
     /**
      * Check if entity is within player's view cone
@@ -142,53 +106,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         
         double angle = direction.angle(toEntity);
         return angle < maxAngle && distance <= SNAPSHOT_RANGE;
-    }
-
-    /**
-     * Round location to nearest point within the original view cone
-     */
-    private Location roundToViewCone(SnapshotSession session, Location targetLoc, double distance) {
-        Vector direction = session.center.getDirection().normalize();
-        
-        Vector toTarget = targetLoc.toVector().subtract(session.center.toVector());
-        toTarget.normalize();
-        
-        double angle = direction.angle(toTarget);
-        
-        // If already within cone, return as-is
-        if (angle <= SNAPSHOT_VIEW_ANGLE) {
-            return targetLoc;
-        }
-        
-        // Project vector onto the cone boundary
-        // Find the closest vector on the cone surface
-        Vector axis = direction.clone();
-        Vector perpendicular = toTarget.clone().subtract(axis.clone().multiply(axis.dot(toTarget))).normalize();
-        
-        if (perpendicular.length() < 0.001) {
-            // Target is directly behind or on axis, pick arbitrary perpendicular
-            perpendicular = new Vector(1, 0, 0);
-            if (Math.abs(axis.getX()) > 0.9) {
-                perpendicular = new Vector(0, 1, 0);
-            }
-            perpendicular = perpendicular.subtract(axis.clone().multiply(axis.dot(perpendicular))).normalize();
-        }
-        
-        // Create boundary vector at cone edge
-        double cosAngle = Math.cos(SNAPSHOT_VIEW_ANGLE);
-        double sinAngle = Math.sin(SNAPSHOT_VIEW_ANGLE);
-        
-        Vector boundaryDir = axis.clone().multiply(cosAngle).add(perpendicular.clone().multiply(sinAngle)).normalize();
-        
-        // Scale to desired distance
-        Vector finalVec = session.center.toVector().add(boundaryDir.multiply(distance));
-        Location result = finalVec.toLocation(session.center.getWorld());
-        
-        // Preserve yaw/pitch from original
-        result.setYaw(targetLoc.getYaw());
-        result.setPitch(targetLoc.getPitch());
-        
-        return result;
     }
 
     private boolean isExcludedEntity(Entity entity) {
@@ -245,9 +162,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         showBoundingBox(player, center, SNAPSHOT_RANGE);
         startConeDisplay(player, session);
         startSessionTicker(player, session);
-        
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-            TextComponent.fromLegacy("§b§lSNAPSHOT TAKEN! §fLeft-click entities to move them"));
     }
 
     /**
@@ -360,7 +274,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
             
             living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, SNAPSHOT_DURATION_TICKS, slownessLevel));
             living.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, SNAPSHOT_DURATION_TICKS, RESISTANCE_LEVEL));
-            living.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, SNAPSHOT_DURATION_TICKS + 20, 0, false, false, false));
             
             if (isPlayer) {
                 Cooldowns.setCooldown(IMMOBILIZED_COOLDOWN_KEY, entity.getUniqueId(), durationMs);
@@ -371,21 +284,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         
         entity.getWorld().spawnParticle(Particle.BLOCK_CRUMBLE, entity.getLocation().add(0, 1, 0), 10, 
             Material.WHITE_CONCRETE.createBlockData());
-    }
-    
-    private void reImmobilizeEntity(Entity entity, long remainingMs, Location playerLoc) {
-        if (entity instanceof LivingEntity living) {
-            int remainingTicks = (int) (remainingMs / 50L);
-            boolean isPlayer = entity instanceof Player;
-            int slownessLevel = isPlayer ? PLAYER_SLOWNESS_LEVEL : MOB_SLOWNESS_LEVEL;
-            
-            living.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, remainingTicks, slownessLevel));
-            living.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, remainingTicks, RESISTANCE_LEVEL));
-            
-            if (isPlayer) {
-                Cooldowns.setCooldown(IMMOBILIZED_COOLDOWN_KEY, entity.getUniqueId(), remainingMs);
-            }
-        }
     }
     
     private void showBoundingBox(Player player, Location center, int radius) {
@@ -434,171 +332,7 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
                 endSession(player, session, false);
                 return;
             }
-            updateSessionVisuals(player, session);
         }, 0L, 5L).getTaskId();
-    }
-    
-    private void updateSessionVisuals(Player player, SnapshotSession session) {
-        long remainingMs = session.endTime - System.currentTimeMillis();
-        int remainingSecs = (int) (remainingMs / 1000);
-        String timeStr = "§b§l" + remainingSecs + "s";
-        
-        String modeStr;
-        if (session.selectedEntity == null) {
-            modeStr = "§fSelect target";
-        } else if (session.selectingDestination) {
-            modeStr = "§aSelect destination (distance locked: " + String.format("%.1f", session.selectedDistance) + ")";
-        } else {
-            modeStr = "§aReady to move";
-        }
-        
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-            TextComponent.fromLegacy(timeStr + " §7| " + modeStr));
-        
-        // Only show distance sphere when we have a selected entity and are choosing destination
-        if (session.selectingDestination && session.selectedEntity != null && session.selectedEntity.isValid()) {
-            showDistanceSphere(player, session, session.selectedDistance);
-        }
-    }
-    
-    private void showDistanceSphere(Player player, SnapshotSession session, double distance) {
-        World world = player.getWorld();
-        Location eyeLoc = player.getEyeLocation();
-        
-        Vector lookDir = eyeLoc.getDirection().normalize();
-        Location rawCenterPoint = eyeLoc.clone().add(lookDir.clone().multiply(distance));
-        
-        // Snap to cone boundary if outside
-        Location centerPoint = roundToViewCone(session, rawCenterPoint, distance);
-        
-        Vector coneDir = centerPoint.toVector().subtract(session.center.toVector()).normalize();
-        
-        Vector up = new Vector(0, 1, 0);
-        Vector right = coneDir.clone().crossProduct(up).normalize();
-        if (right.length() < 0.001) {
-            right = new Vector(1, 0, 0);
-        }
-        Vector actualUp = right.clone().crossProduct(coneDir).normalize();
-        
-        int points = 16;
-        for (int i = 0; i < points; i++) {
-            double angle = 2 * Math.PI * i / points;
-            double x = Math.cos(angle) * 2.0;
-            double y = Math.sin(angle) * 2.0;
-            
-            Vector offset = right.clone().multiply(x).add(actualUp.clone().multiply(y));
-            Location particleLoc = centerPoint.clone().add(offset);
-            
-            world.spawnParticle(Particle.DUST, particleLoc, 1, 
-                new Particle.DustOptions(VALID_AREA_COLOR, 1.0f));
-        }
-        
-        world.spawnParticle(Particle.DUST, centerPoint, 3, 
-            new Particle.DustOptions(GLOW_COLOR_GREEN, 1.5f));
-    }
-    
-    private Entity getTargetedEntity(Player player, SnapshotSession session) {
-        Location eyeLoc = player.getEyeLocation();
-        Vector direction = eyeLoc.getDirection().normalize();
-        
-        Entity closest = null;
-        double closestAngle = SELECTION_ANGLE;
-        
-        for (UUID entityUuid : session.frozenEntities) {
-            Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity == null || !entity.isValid()) continue;
-            if (isExcludedEntity(entity)) continue;
-            if (entity.getLocation().distance(eyeLoc) > SELECTION_RANGE) continue;
-            
-            Location targetLoc = entity instanceof LivingEntity ? 
-                ((LivingEntity) entity).getEyeLocation() : 
-                entity.getLocation().add(0, 1, 0);
-            
-            Vector toEntity = targetLoc.toVector().subtract(eyeLoc.toVector());
-            double distance = toEntity.length();
-            toEntity.normalize();
-            
-            double angle = direction.angle(toEntity);
-            if (angle < closestAngle && distance < SELECTION_RANGE) {
-                closest = entity;
-                closestAngle = angle;
-            }
-        }
-        
-        return closest;
-    }
-    
-    private void selectEntity(SnapshotSession session, Entity entity, Player player) {
-        
-        session.selectedEntity = entity;
-        session.selectingDestination = true;
-        // ONLY lock distance when entity is selected
-        session.selectedDistance = entity.getLocation().distance(player.getLocation());
-        
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.5f);
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-            TextComponent.fromLegacy("§aSelected! Distance locked: " + String.format("%.1f", session.selectedDistance) + " blocks"));
-    }
-    
-    private Location calculateDestination(Player player, SnapshotSession session) {
-        Location eyeLoc = player.getEyeLocation();
-        Vector direction = eyeLoc.getDirection().normalize();
-        
-        // Calculate raw destination at locked distance
-        Vector destVector = eyeLoc.toVector().add(direction.multiply(session.selectedDistance));
-        Location rawDestination = destVector.toLocation(player.getWorld());
-        
-        // Round to stay within original view cone
-        Location destination = roundToViewCone(session, rawDestination, session.selectedDistance);
-        
-        Location original = session.originalLocations.get(session.selectedEntity.getUniqueId());
-        if (original != null) {
-            destination.setYaw(original.getYaw());
-            destination.setPitch(original.getPitch());
-        }
-        
-        return destination;
-    }
-    
-    private void executeMove(Player player, SnapshotSession session, Location destination) {
-        Entity entity = session.selectedEntity;
-        if (entity == null || !entity.isValid()) {
-            resetSelection(session, player);
-            return;
-        }
-        
-        Location startLoc = entity.getLocation();
-        
-        Main.getPlugin().getParticleManager().particleTrail(
-            startLoc.add(0, 1, 0), destination.clone().add(0, 1, 0), 200, 255, 255);
-        
-        player.getWorld().playSound(startLoc, Sound.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8f, 1.0f);
-        player.getWorld().playSound(destination, Sound.ENTITY_ILLUSIONER_MIRROR_MOVE, 0.8f, 1.2f);
-        player.getWorld().spawnParticle(Particle.FLASH, startLoc, 1);
-        player.getWorld().spawnParticle(Particle.FLASH, destination.clone().add(0, 1, 0), 1);
-        
-        entity.teleport(destination);
-        
-        session.originalLocations.put(entity.getUniqueId(), destination.clone());
-        session.entityPlayerDistances.put(entity.getUniqueId(), destination.distance(player.getLocation()));
-        
-        if (entity instanceof Player) {
-            long remainingMs = session.endTime - System.currentTimeMillis();
-            if (remainingMs > 0) {
-                reImmobilizeEntity(entity, remainingMs, player.getLocation());
-            }
-        }
-        
-        resetSelection(session, player);
-        
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-            TextComponent.fromLegacy("§aMoved! Left-click another entity or wait for snapshot to end"));
-    }
-    
-    private void resetSelection(SnapshotSession session, Player player) {
-        session.selectedEntity = null;
-        session.selectingDestination = false;
-        session.selectedDistance = 0;
     }
     
     private void endSession(Player player, SnapshotSession session, boolean manual) {
@@ -613,13 +347,12 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         
         for (UUID entityUuid : session.frozenEntities) {
             Entity entity = Bukkit.getEntity(entityUuid);
-            if (entity == null) continue;
+            if (entity == null || !entity.isValid()) continue;
             
             
             if (entity instanceof LivingEntity living) {
                 living.removePotionEffect(PotionEffectType.SLOWNESS);
                 living.removePotionEffect(PotionEffectType.RESISTANCE);
-                living.removePotionEffect(PotionEffectType.GLOWING);
                 if(!(living instanceof Player)) living.setGravity(true);
             }
             
@@ -637,16 +370,11 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         }
         
         activeSessions.remove(player.getUniqueId());
-        
-        if (!manual) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                TextComponent.fromLegacy("§eSnapshot faded..."));
-        }
     }
     
     @Override
     public long getBaseCooldown() {
-        return 15000L;
+        return 40000L;
     }
     
     @Override
@@ -656,7 +384,7 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
     
     @Override
     public boolean isInItemRotation() {
-        return false;
+        return true;
     }
     
     @Override
@@ -674,8 +402,6 @@ public class SayCheese extends BeangameItem implements BGLClickableI, BGRClickab
         return List.of(
             "§9Right-click to take a snapshot of the",
             "§9area, freezing all entities in place.",
-            "§9Left-click to select and move frozen",
-            "§9entities to new locations.",
             "",
             "§9Castable",
             "§9§obeangame"

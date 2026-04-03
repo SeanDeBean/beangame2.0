@@ -285,7 +285,7 @@ public class BeangameStart implements CommandExecutor{
         WorldBorder border = world.getWorldBorder();
         border.setCenter(spawn);
         border.setSize(501);
-        border.setDamageAmount(1);
+        border.setDamageAmount(0.4);
         border.setDamageBuffer(0.25);
         border.setWarningDistance(5);
         
@@ -384,7 +384,6 @@ public class BeangameStart implements CommandExecutor{
                 PvpToggleCommand.pvp = false;
                 BorderManipulator.BorderManipulatorActive = true;
                 BorderManipulator.target = null;
-                RandomizerCommand.setRandomizer(false);
                 startphase = true;
                 gamerunning = true;
 
@@ -536,7 +535,7 @@ public class BeangameStart implements CommandExecutor{
     private int getAlivePlayerCount(World w){
         int count = 0;
         for(Player p : Bukkit.getOnlinePlayers()){
-            if((p.getGameMode() == GameMode.SURVIVAL || Revive.noRevive.contains(p.getUniqueId())) && p.getWorld().equals(w)){
+            if((p.getGameMode().equals(GameMode.SURVIVAL) || Revive.noRevive.contains(p.getUniqueId()) || p.getGameMode().equals(GameMode.CREATIVE)) && p.getWorld().equals(w)){
                 count++;
             }
         }

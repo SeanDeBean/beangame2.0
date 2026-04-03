@@ -1,23 +1,29 @@
 package com.beangamecore;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import com.beangamecore.commands.BeangameStart;
 import com.beangamecore.data.DatabaseManager;
 import com.beangamecore.util.Cooldowns;
 import com.beangamecore.util.PotionCategories;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class LevelingSystem {
     
@@ -27,13 +33,26 @@ public class LevelingSystem {
     
     // XP rewards
     private static final int XP_WIN = 10;
-    private static final int XP_LOSS = 2;
+    private static final int XP_LOSS = 4;
+    private static final int XP_ROLL = 2;
     private static final int XP_REVIVE = 5;
     
     // Formula: 5 * (1.15 ^ level)
     private static final double BASE_XP = 5.0;
     private static final double MULTIPLIER = 1.15;
     
+    // Queue for XP processing
+    private static final Queue<XpUpdateRequest> xpUpdateQueue = new ConcurrentLinkedQueue<>();
+    private static final int XP_BATCH_SIZE = 10;
+    private static final long XP_DELAY_BETWEEN_BATCHES = 1L; // 1 tick between batches
+    private static boolean isProcessingXp = false;
+    
+    // Queue for database saves (separate from XP processing to save async)
+    private static final Queue<Player> saveQueue = new ConcurrentLinkedQueue<>();
+    private static final int SAVE_BATCH_SIZE = 5;
+    private static final long SAVE_DELAY_BETWEEN_BATCHES = 5L; // 5 ticks between save batches
+    private static boolean isProcessingSaves = false;
+
     public LevelingSystem() {
         this.scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
         createTable();
@@ -41,6 +60,25 @@ public class LevelingSystem {
         
         // Start per-tick team update task
         Bukkit.getScheduler().runTaskTimer(Main.getPlugin(), this::updateAllTeams, 0L, 1L);
+    }
+    
+    // Inner class to hold XP update requests
+    private static class XpUpdateRequest {
+        final UUID playerUuid;
+        final String playerName;
+        final int amount;
+        final XpType type;
+        
+        XpUpdateRequest(UUID playerUuid, String playerName, int amount, XpType type) {
+            this.playerUuid = playerUuid;
+            this.playerName = playerName;
+            this.amount = amount;
+            this.type = type;
+        }
+    }
+    
+    private enum XpType {
+        WIN, LOSS, ROLL, REVIVE, CUSTOM
     }
     
     private void createTable() {
@@ -113,7 +151,7 @@ public class LevelingSystem {
                 
                 if (!storedName.equals(currentName)) {
                     updatePlayerName(uuid, currentName);
-                    Main.logger().info("[LevelingSystem] Updated username for " + currentName + " (was: " + storedName + ")");
+                    Main.logger().info(() -> "[LevelingSystem] Updated username for " + currentName + " (was: " + storedName + ")");
                 }
             } else {
                 insertNewPlayer(player);
@@ -153,21 +191,82 @@ public class LevelingSystem {
         }
     }
     
+    // Modified: Queue save instead of immediate execution
     public void savePlayer(Player player) {
-        PlayerData data = playerData.get(player.getUniqueId());
-        if (data == null) return;
+        if (!saveQueue.contains(player)) {
+            saveQueue.add(player);
+        }
+        startSaveProcessing();
+    }
+    
+    // New: Start save processing if not already running
+    private void startSaveProcessing() {
+        if (isProcessingSaves) {
+            return;
+        }
+        isProcessingSaves = true;
+        processSaveBatch();
+    }
+    
+    // New: Process save queue in batches asynchronously
+    private void processSaveBatch() {
+        if (saveQueue.isEmpty()) {
+            isProcessingSaves = false;
+            return;
+        }
         
+        Bukkit.getScheduler().runTaskAsynchronously(Main.getPlugin(), () -> {
+            List<Player> batch = new ArrayList<>();
+            while (!saveQueue.isEmpty() && batch.size() < SAVE_BATCH_SIZE) {
+                Player player = saveQueue.poll();
+                if (player != null) {
+                    batch.add(player);
+                }
+            }
+            
+            if (!batch.isEmpty()) {
+                performBatchSave(batch);
+            }
+            
+            // Schedule next batch on main thread
+            Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), () -> {
+                if (!saveQueue.isEmpty()) {
+                    processSaveBatch();
+                } else {
+                    isProcessingSaves = false;
+                }
+            }, SAVE_DELAY_BETWEEN_BATCHES);
+        });
+    }
+    
+    // New: Perform actual batch database save
+    private void performBatchSave(List<Player> players) {
         String sql = "UPDATE players SET player_name = ?, level = ?, xp = ? WHERE uuid = ?";
         
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, player.getName());
-            stmt.setInt(2, data.getLevel());
-            stmt.setInt(3, data.getXp());
-            stmt.setString(4, player.getUniqueId().toString());
-            stmt.executeUpdate();
+            
+            for (Player player : players) {
+                PlayerData data = playerData.get(player.getUniqueId());
+                if (data == null) continue;
+                
+                stmt.setString(1, player.getName());
+                stmt.setInt(2, data.getLevel());
+                stmt.setInt(3, data.getXp());
+                stmt.setString(4, player.getUniqueId().toString());
+                stmt.addBatch();
+            }
+            
+            stmt.executeBatch();
+            
         } catch (SQLException e) {
-            e.printStackTrace();
+            Main.getPlugin().getLogger().severe(() -> "[LevelingSystem] Failed to save batch: " + e.getMessage());
+            // Re-add failed players to queue
+            for (Player player : players) {
+                if (!saveQueue.contains(player)) {
+                    saveQueue.add(player);
+                }
+            }
         }
     }
     
@@ -186,26 +285,49 @@ public class LevelingSystem {
             }
         }
         
+        // Immediate save on unload to ensure data persistence
+        performImmediateSave(player);
         playerData.remove(uuid);
-        savePlayer(player);
     }
     
+    // New: Immediate save for critical operations (unload, etc.)
+    private void performImmediateSave(Player player) {
+        PlayerData data = playerData.get(player.getUniqueId());
+        if (data == null) return;
+        
+        String sql = "UPDATE players SET player_name = ?, level = ?, xp = ? WHERE uuid = ?";
+        
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, player.getName());
+            stmt.setInt(2, data.getLevel());
+            stmt.setInt(3, data.getXp());
+            stmt.setString(4, player.getUniqueId().toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void createOrUpdatePlayerTeam(Player player, int level) {
         UUID uuid = player.getUniqueId();
-        String oldTeamName = playerTeamNames.get(uuid);
-        String newTeamName = "playerlevel_" + uuid.toString().substring(0, 8) + "_" + level;
+        // Use consistent alphabetical ordering by player name
+        String newTeamName = "level_" + player.getName().toLowerCase();
         
-        // If already on correct team, still update suffix in case debuffs changed
-        if (oldTeamName != null && oldTeamName.equals(newTeamName)) {
+        // If already on correct team, just update prefix/suffix
+        if (playerTeamNames.containsKey(uuid) && 
+            scoreboard.getTeam(playerTeamNames.get(uuid)) != null &&
+            playerTeamNames.get(uuid).equals(newTeamName)) {
+            
             Team team = scoreboard.getTeam(newTeamName);
-            if (team != null) {
-                String suffix = buildDebuffSuffix(uuid);
-                team.setSuffix(suffix);
-            }
+            String prefix = getColorForLevel(level) + "[" + level + "] " + ChatColor.RESET;
+            team.setPrefix(prefix);
+            team.setSuffix(buildDebuffSuffix(uuid));
             return;
         }
         
-        // Remove from old team and delete if empty
+        // Remove from old team
+        String oldTeamName = playerTeamNames.remove(uuid);
         if (oldTeamName != null) {
             Team oldTeam = scoreboard.getTeam(oldTeamName);
             if (oldTeam != null) {
@@ -216,7 +338,7 @@ public class LevelingSystem {
             }
         }
         
-        // Create or get new team
+        // Create or get team
         Team newTeam = scoreboard.getTeam(newTeamName);
         if (newTeam == null) {
             newTeam = scoreboard.registerNewTeam(newTeamName);
@@ -225,14 +347,7 @@ public class LevelingSystem {
         // Set prefix with level and color
         String color = getColorForLevel(level);
         newTeam.setPrefix(color + "[" + level + "] " + ChatColor.RESET);
-        
-        // Set suffix with debuff indicators
-        String suffix = buildDebuffSuffix(uuid);
-        if (!suffix.isEmpty()) {
-            newTeam.setSuffix(suffix);
-        } else {
-            newTeam.setSuffix(""); // Clear suffix if no debuffs
-        }
+        newTeam.setSuffix(buildDebuffSuffix(uuid));
         
         // Add player to team
         newTeam.addEntry(player.getName());
@@ -243,7 +358,7 @@ public class LevelingSystem {
         StringBuilder suffix = new StringBuilder();
         
         Map<String, String> debuffEmojis = Map.of(
-            "attack", "☠",
+            "attack", "§f☠",
             "use_item", "§c✖",
             "slot_enforced", "§e✎",
             "immobilized", "§b❄",
@@ -255,7 +370,11 @@ public class LevelingSystem {
         
         for (String debuff : PotionCategories.getHarmfulCustomPotions()) {
             if (Cooldowns.onCooldown(debuff, uuid)) {
-                String emoji = debuffEmojis.getOrDefault(debuff, "?");
+                String emoji = debuffEmojis.entrySet().stream()
+                    .filter(e -> e.getKey().equalsIgnoreCase(debuff))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
+                    .orElse("?");
                 suffix.append(emoji);
             }
         }
@@ -277,64 +396,113 @@ public class LevelingSystem {
         }
     }
     
+    // Modified: Queue XP update instead of immediate processing
     public void addXp(Player player, int amount) {
         UUID uuid = player.getUniqueId();
-        PlayerData data = playerData.get(uuid);
         
-        // If not in memory, load from database first
-        if (data == null) {
-            data = loadPlayerDataFromDatabase(player);
-            if (data == null) {
-                data = new PlayerData(); // New player
-            }
-            playerData.put(uuid, data);
-            createOrUpdatePlayerTeam(player, data.getLevel());
+        // Ensure player data is loaded
+        if (!playerData.containsKey(uuid)) {
+            loadPlayer(player);
         }
         
-        int oldLevel = data.getLevel();
-        data.addXp(amount);
-        
-        while (data.getXp() >= getXpNeededForLevel(data.getLevel())) {
-            data.levelUp();
-        }
-        
-        if (data.getLevel() != oldLevel) {
-            createOrUpdatePlayerTeam(player, data.getLevel());
-        }
-        
-        savePlayer(player);
-    }
-
-    private PlayerData loadPlayerDataFromDatabase(Player player) {
-        String sql = "SELECT level, xp FROM players WHERE uuid = ?";
-        
-        try (Connection conn = DatabaseManager.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, player.getUniqueId().toString());
-            ResultSet rs = stmt.executeQuery();
-            
-            if (rs.next()) {
-                PlayerData data = new PlayerData();
-                data.setLevel(rs.getInt("level"));
-                data.setXp(rs.getInt("xp"));
-                return data;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+        // Add to processing queue
+        xpUpdateQueue.add(new XpUpdateRequest(uuid, player.getName(), amount, XpType.CUSTOM));
+        startXpProcessing();
     }
     
+    // New: Start XP processing if not already running
+    private void startXpProcessing() {
+        if (isProcessingXp) {
+            return;
+        }
+        isProcessingXp = true;
+        processXpBatch();
+    }
+    
+    // New: Process XP queue in batches on the main thread (sync for thread safety with HashMap)
+    private void processXpBatch() {
+        if (xpUpdateQueue.isEmpty()) {
+            isProcessingXp = false;
+            return;
+        }
+        
+        Bukkit.getScheduler().runTask(Main.getPlugin(), () -> {
+            int processed = 0;
+            Set<UUID> playersToSave = new HashSet<>();
+            
+            while (!xpUpdateQueue.isEmpty() && processed < XP_BATCH_SIZE) {
+                XpUpdateRequest request = xpUpdateQueue.poll();
+                if (request == null) continue;
+                
+                PlayerData data = playerData.get(request.playerUuid);
+                if (data == null) continue;
+                
+                int oldLevel = data.getLevel();
+                data.addXp(request.amount);
+                
+                // Check for level up
+                while (data.getXp() >= getXpNeededForLevel(data.getLevel())) {
+                    data.levelUp();
+                }
+                
+                // Update team if level changed
+                if (data.getLevel() != oldLevel) {
+                    Player player = Bukkit.getPlayer(request.playerUuid);
+                    if (player != null && player.isOnline()) {
+                        createOrUpdatePlayerTeam(player, data.getLevel());
+                    }
+                }
+                
+                playersToSave.add(request.playerUuid);
+                processed++;
+            }
+            
+            // Queue players for async save
+            for (UUID uuid : playersToSave) {
+                Player player = Bukkit.getPlayer(uuid);
+                if (player != null && player.isOnline()) {
+                    savePlayer(player);
+                }
+            }
+            
+            // Schedule next batch
+            if (!xpUpdateQueue.isEmpty()) {
+                Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), 
+                    this::processXpBatch, XP_DELAY_BETWEEN_BATCHES);
+            } else {
+                isProcessingXp = false;
+            }
+        });
+    }
+    
+    // Modified event methods to use queue
     public void onWin(Player player) {
-        addXp(player, XP_WIN);
+        queueXpEvent(player, XP_WIN, XpType.WIN);
     }
     
     public void onLoss(Player player) {
-        addXp(player, XP_LOSS);
+        queueXpEvent(player, XP_LOSS, XpType.LOSS);
     }
     
     public void onRevive(Player player) {
-        addXp(player, XP_REVIVE);
+        queueXpEvent(player, XP_REVIVE, XpType.REVIVE);
+    }
+
+    public void onRoll(Player player) {
+        if(BeangameStart.getAutorollRunCount() <= 8) queueXpEvent(player, XP_ROLL, XpType.ROLL);
+    }
+    
+    // New: Helper to queue XP events
+    private void queueXpEvent(Player player, int amount, XpType type) {
+        UUID uuid = player.getUniqueId();
+        
+        // Ensure player data is loaded
+        if (!playerData.containsKey(uuid)) {
+            loadPlayer(player);
+        }
+        
+        xpUpdateQueue.add(new XpUpdateRequest(uuid, player.getName(), amount, type));
+        startXpProcessing();
     }
     
     public int getPlayerLevel(Player player) {
@@ -374,6 +542,31 @@ public class LevelingSystem {
     
     public String getTeamName(Player player) {
         return playerTeamNames.get(player.getUniqueId());
+    }
+    
+    // New: Force flush all pending operations (useful on shutdown)
+    public void flushAll() {
+        // Process all remaining XP updates immediately
+        while (!xpUpdateQueue.isEmpty()) {
+            XpUpdateRequest request = xpUpdateQueue.poll();
+            if (request == null) continue;
+            
+            PlayerData data = playerData.get(request.playerUuid);
+            if (data == null) continue;
+            
+            data.addXp(request.amount);
+            while (data.getXp() >= getXpNeededForLevel(data.getLevel())) {
+                data.levelUp();
+            }
+        }
+        
+        // Process all remaining saves immediately
+        while (!saveQueue.isEmpty()) {
+            Player player = saveQueue.poll();
+            if (player != null) {
+                performImmediateSave(player);
+            }
+        }
     }
     
     private static class PlayerData {

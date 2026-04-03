@@ -2,9 +2,9 @@ package com.beangamecore.items;
 
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
-import com.beangamecore.items.type.BGLPGlobalTick;
 import com.beangamecore.items.type.BGRClickableI;
 import com.beangamecore.items.type.BeangameSoftItem;
+import com.beangamecore.items.type.general.BG3sTickingI;
 import com.beangamecore.items.type.voicechat.BGVoicechat;
 import com.beangamecore.recipes.RecipeAPI;
 import com.beangamecore.registry.BeangameItemRegistry;
@@ -33,7 +33,7 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class WalkieTalkie extends BeangameItem implements BGVoicechat, BGLPGlobalTick, BGRClickableI, BeangameSoftItem {
+public class WalkieTalkie extends BeangameItem implements BGVoicechat, BG3sTickingI, BGRClickableI, BeangameSoftItem {
     
     public static final float MAX_FREQUENCY = 500f;
     public static final float MIN_FREQUENCY = 27f;

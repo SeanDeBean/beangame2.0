@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.items.type.talisman.BGHPTalismanI;
 import com.beangamecore.util.Longs;
 
@@ -28,8 +29,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class TrappersCapital extends BeangameItem implements BGRClickableI, BGHPTalismanI {
+public class TrappersCapital extends BeangameItem implements BGRClickableI, BGHPTalismanI, BGResetableI {
     
+    @Override
+    public void resetItem(){
+        Longs.register("trapperscapital_stacks");
+    }
+
     public void trapperscapitalInventoryClick(InventoryClickEvent event) {
         event.setCancelled(true);
         Player player = (Player) event.getWhoClicked();

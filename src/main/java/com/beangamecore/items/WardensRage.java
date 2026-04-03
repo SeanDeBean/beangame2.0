@@ -60,7 +60,7 @@ public class WardensRage extends BeangameItem implements BGRClickableI, BGVoicec
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 600, 1, false, false));
         warden.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 600, 1, false, false));
         AtomicBoolean killedEarly = new AtomicBoolean(false);
-        Revive.noRevive.add(uuid);
+        if(!Revive.noRevive.contains(uuid)) Revive.noRevive.add(uuid);
 
         activeWardens.put(uuid, warden);
 

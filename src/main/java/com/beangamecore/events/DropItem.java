@@ -5,13 +5,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import com.beangamecore.commands.RandomizerCommand;
+import com.beangamecore.Main;
 
 public class DropItem implements Listener{
     
     @EventHandler
     private void onDropItem(PlayerDropItemEvent event){
-        if(RandomizerCommand.getRandomizer()){
+        if(Main.getPlugin().getBeangameModes().getGameMode("randomizer").isEnabled()){
             Item item = event.getItemDrop();
             item.setTicksLived(5800);
         }

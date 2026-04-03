@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGLClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -23,7 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.util.Vector;
 
-public class FireFlower extends BeangameItem implements BGLClickableI {
+public class FireFlower extends BeangameItem implements BGLClickableI, BGResetableI {
     
     @Override
     public void onLeftClick(PlayerInteractEvent event, ItemStack item){
@@ -66,7 +67,8 @@ public class FireFlower extends BeangameItem implements BGLClickableI {
         );
     }
 
-    public void removeAllFireballs(){
+    @Override
+    public void resetItem(){
         for(Fireball fireball : Fireball.getFireballs()){
             fireball.remove();
         }

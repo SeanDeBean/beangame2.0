@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BG2tTickingI;
 import com.beangamecore.items.type.talisman.BGLPTalismanI;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -30,7 +31,7 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 
 import com.beangamecore.Main;
 
-public class WarpingTrader extends BeangameItem implements BGLPTalismanI, BGRClickableI {
+public class WarpingTrader extends BeangameItem implements BGLPTalismanI, BGRClickableI, BG2tTickingI {
 
     private Type[] types = new Type[]{Type.DESERT, Type.JUNGLE, Type.PLAINS, Type.SAVANNA, Type.SNOW, Type.SWAMP, Type.TAIGA};
 
@@ -79,7 +80,8 @@ public class WarpingTrader extends BeangameItem implements BGLPTalismanI, BGRCli
 
     public static CopyOnWriteArrayList<Villager> warpingtraderVillagers = new CopyOnWriteArrayList<>();
 
-    public void warpingtraderParticles() {
+    @Override
+    public void tick() {
         // Safely remove dead villagers
         warpingtraderVillagers.removeIf(Villager::isDead);
         

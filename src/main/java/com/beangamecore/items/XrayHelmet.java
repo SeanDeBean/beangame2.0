@@ -28,8 +28,9 @@ import org.bukkit.potion.PotionEffectType;
 import com.beangamecore.events.ServerLoad;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGArmorI;
+import com.beangamecore.items.type.general.BG3sTickingI;
 
-public class XrayHelmet extends BeangameItem implements BGArmorI {
+public class XrayHelmet extends BeangameItem implements BGArmorI, BG3sTickingI {
     
     private static final List<Slime> slimes = new ArrayList<>();
 
@@ -74,7 +75,8 @@ public class XrayHelmet extends BeangameItem implements BGArmorI {
         slime.setSilent(true);
     }
 
-    public static void resetSlimes() {
+    @Override
+    public void tick() {
         Iterator<Slime> iterator = slimes.iterator();
         while (iterator.hasNext()) {
             Slime slime = iterator.next();
@@ -152,10 +154,7 @@ public class XrayHelmet extends BeangameItem implements BGArmorI {
             "§6invisible players",
             "",
             "§6Armor",
-            "§9§obeangame",
-            "",
-            "When worn on head:",
-            "+1 Armor"
+            "§9§obeangame"
         );
     }
 
@@ -176,7 +175,7 @@ public class XrayHelmet extends BeangameItem implements BGArmorI {
 
     @Override
     public List<ItemFlag> getItemFlags() {
-        return List.of(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ARMOR_TRIM);
+        return List.of(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ARMOR_TRIM);
     }
 
     @Override

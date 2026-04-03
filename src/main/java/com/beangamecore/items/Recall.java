@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGConsumableI;
+import com.beangamecore.items.type.general.BGResetableI;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -18,7 +20,7 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class Recall extends BeangameItem implements BGConsumableI {
+public class Recall extends BeangameItem implements BGConsumableI, BGResetableI {
 
     @Override
     public void onConsume(PlayerItemConsumeEvent event) {
@@ -55,7 +57,8 @@ public class Recall extends BeangameItem implements BGConsumableI {
     private static Map<UUID, Long> recallcd = new HashMap<>();
     private static Map<UUID, Location> recallloc = new HashMap<>();
 
-    public void recallReset(){
+    @Override
+    public void resetItem(){
         recallloc.clear();
     }
 

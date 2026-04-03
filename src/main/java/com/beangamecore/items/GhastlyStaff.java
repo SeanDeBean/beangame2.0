@@ -34,10 +34,10 @@ public class GhastlyStaff extends BeangameItem implements BGRClickableI {
         // item event
         Location loc = player.getLocation();
         player.getWorld().playSound(loc, Sound.ENTITY_GHAST_SHOOT, 1.0F, 1.0F);
-        Entity ghastlystafffireball = player.launchProjectile(Fireball.class);
-        ghastlystafffireball.setCustomName(player.getName());
+        Fireball ghastlystafffireball = (Fireball) player.launchProjectile(Fireball.class);
         loc.setY(loc.getY() + 1.5D);
         ghastlystafffireball.setVelocity(player.getEyeLocation().getDirection().multiply(1));
+        ghastlystafffireball.setYield(1.0f);
         // despawn fireballs
         Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.getPlugin(), () -> {
             if(ghastlystafffireball != null){

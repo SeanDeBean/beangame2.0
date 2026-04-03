@@ -196,9 +196,11 @@ public class BeangameItemRegistry {
      * Get all BeangameItems that are in the item rotation.
      */
     public static ArrayList<BeangameItem> getItemsInRotation() {
-        return registry.values().stream()
+        ArrayList<BeangameItem> items = registry.values().stream()
                 .filter(BeangameItem::inItemRotation)
+                .filter(BeangameItem::isUsable)
                 .collect(Collectors.toCollection(ArrayList::new));
+        return items;
     }
 
     /**

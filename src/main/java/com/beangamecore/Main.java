@@ -1,42 +1,10 @@
 package com.beangamecore;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-
-import com.beangamecore.blocks.*;
-import com.beangamecore.commands.*;
-import com.beangamecore.data.Configuration;
-import com.beangamecore.data.DataAPI;
-import com.beangamecore.data.DatabaseManager;
-import com.beangamecore.entities.seacreatures.*;
-import com.beangamecore.events.*;
-import com.beangamecore.items.*;
-import com.beangamecore.items.armorsets.acacia.*;
-import com.beangamecore.items.armorsets.birch.*;
-import com.beangamecore.items.armorsets.cherry.*;
-import com.beangamecore.items.armorsets.darkoak.*;
-import com.beangamecore.items.armorsets.jungle.*;  
-import com.beangamecore.items.armorsets.mangrove.*;
-import com.beangamecore.items.armorsets.oak.*;
-import com.beangamecore.items.armorsets.paleoak.*;
-import com.beangamecore.items.armorsets.spruce.*;
-import com.beangamecore.items.fish.common.*;
-import com.beangamecore.items.fish.uncommon.*;
-import com.beangamecore.items.fish.rare.*;
-import com.beangamecore.items.fish.epic.*;
-import com.beangamecore.items.fish.legendary.*;
-import com.beangamecore.items.generic.BeangameItem;
-import com.beangamecore.items.material.*;
-import com.beangamecore.particles.BeangameParticleManager;
-import com.beangamecore.recipes.RecipeAPI;
-import com.beangamecore.recipes.RecipeManager;
-import com.beangamecore.registry.BeangameItemRegistry;
-import com.beangamecore.util.*;
-import com.onarandombox.MultiverseCore.MultiverseCore;
-
-import de.maxhenkel.voicechat.api.BukkitVoicechatService;
 
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -48,6 +16,72 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.beangamecore.blocks.*;
+import com.beangamecore.commands.*;
+import com.beangamecore.data.Configuration;
+import com.beangamecore.data.DataAPI;
+import com.beangamecore.data.DatabaseManager;
+import com.beangamecore.entities.seacreatures.GuardianPopsicle;
+import com.beangamecore.entities.seacreatures.SeaCreatureRegistry;
+import com.beangamecore.events.AsyncPlayerChat;
+import com.beangamecore.events.BlockBreak;
+import com.beangamecore.events.BlockPlace;
+import com.beangamecore.events.ChunkLoad;
+import com.beangamecore.events.ChunkUnload;
+import com.beangamecore.events.DropItem;
+import com.beangamecore.events.EntityDamage;
+import com.beangamecore.events.EntityDamageByEntity;
+import com.beangamecore.events.EntityDeath;
+import com.beangamecore.events.EntityShootBow;
+import com.beangamecore.events.FeedMob;
+import com.beangamecore.events.FurnaceSmelt;
+import com.beangamecore.events.InventoryClick;
+import com.beangamecore.events.LivingEntityTarget;
+import com.beangamecore.events.NoteBlockPlay;
+import com.beangamecore.events.PlayerChangeSign;
+import com.beangamecore.events.PlayerDeath;
+import com.beangamecore.events.PlayerFish;
+import com.beangamecore.events.PlayerInteract;
+import com.beangamecore.events.PlayerItemConsume;
+import com.beangamecore.events.PlayerItemHeld;
+import com.beangamecore.events.PlayerMove;
+import com.beangamecore.events.PlayerRespawn;
+import com.beangamecore.events.PlayerToggleFlight;
+import com.beangamecore.events.PlayerToggleSneak;
+import com.beangamecore.events.ProjectileHandler;
+import com.beangamecore.events.ServerLoad;
+import com.beangamecore.events.Teleport;
+import com.beangamecore.items.*;
+import com.beangamecore.items.armorsets.acacia.*;
+import com.beangamecore.items.armorsets.birch.*;
+import com.beangamecore.items.armorsets.cherry.*;
+import com.beangamecore.items.armorsets.darkoak.*;
+import com.beangamecore.items.armorsets.jungle.*;
+import com.beangamecore.items.armorsets.mangrove.*;
+import com.beangamecore.items.armorsets.oak.*;
+import com.beangamecore.items.armorsets.paleoak.*;
+import com.beangamecore.items.armorsets.spruce.*;
+import com.beangamecore.items.fish.common.*;
+import com.beangamecore.items.fish.epic.*;
+import com.beangamecore.items.fish.legendary.*;
+import com.beangamecore.items.fish.rare.*;
+import com.beangamecore.items.fish.uncommon.*;
+import com.beangamecore.items.generic.BeangameItem;
+import com.beangamecore.items.material.*;
+import com.beangamecore.particles.BeangameParticleManager;
+import com.beangamecore.recipes.RecipeAPI;
+import com.beangamecore.recipes.RecipeManager;
+import com.beangamecore.registry.BeangameItemRegistry;
+import com.beangamecore.util.Booleans;
+import com.beangamecore.util.Cooldowns;
+import com.beangamecore.util.GlobalCooldowns;
+import com.beangamecore.util.Key;
+import com.beangamecore.util.Longs;
+import com.beangamecore.util.ResetItems;
+import com.onarandombox.MultiverseCore.MultiverseCore;
+
+import de.maxhenkel.voicechat.api.BukkitVoicechatService;
 
 
 public class Main extends JavaPlugin {
@@ -62,6 +96,7 @@ public class Main extends JavaPlugin {
   private BeangameParticleManager particleManager;
   private static MultiverseCore multiverseCore;
   private LevelingSystem levelingSystem;
+  private BeangameModes modes;
   
     // Get the plugin instance safely
     public static Main getPlugin() {
@@ -104,16 +139,22 @@ public class Main extends JavaPlugin {
         return levelingSystem;
     }
 
+    public BeangameModes getBeangameModes(){
+        return modes;
+    }
+
   @Override
   public void onEnable() {
       plugin = this;
 
       setupLevelingSystem();
 
+      modes = new BeangameModes(this);
+
       getServer().getServicesManager().getKnownServices().forEach(service -> {
-        logger().info("Registered Service: " + service.getName() + " | ClassLoader: " + service.getClass().getClassLoader());
+        logger().info(() -> "Registered Service: " + service.getName() + " | ClassLoader: " + service.getClass().getClassLoader());
       });
-      logger().info("BukkitVoicechatService ClassLoader: " + BukkitVoicechatService.class.getClassLoader());
+      logger().info(() -> "BukkitVoicechatService ClassLoader: " + BukkitVoicechatService.class.getClassLoader());
 
             RegisteredServiceProvider<BukkitVoicechatService> provider =
                 getServer().getServicesManager().getRegistration(BukkitVoicechatService.class);
@@ -149,6 +190,15 @@ public class Main extends JavaPlugin {
       registerCommands();
       registerCounters();
       registerEvents();
+
+      File modelDir = new File(getDataFolder(), "models/vosk-model-small-en-us-0.15");
+      try {
+        Spellbook.initModel(modelDir);
+      } catch (IOException e) {
+        getLogger().severe("Failed to load Vosk model: " + e.getMessage());
+        getLogger().info("Download from https://alphacephei.com/vosk/models and extract to " + modelDir.getParent());
+      }
+
       logger().info("Beangame Enabled");
   }
 
@@ -210,9 +260,9 @@ public class Main extends JavaPlugin {
           config = new Configuration();
       }
       if(config.update()){
-          logger().info("Updated config to version " + Configuration.VERSION);
+          logger().info(() -> "Updated config to version " + Configuration.VERSION);
       } else {
-          logger().info("Using config version " + Configuration.VERSION);
+          logger().info(() -> "Using config version " + Configuration.VERSION);
       }
   }
 
@@ -236,15 +286,16 @@ public class Main extends JavaPlugin {
         new BatCape(),
         new Bean(),
         new BeanChronicles(),
-        new BeangameGuidebook(),
         new BeefCity(),
         new BerserkersEssence(),
         new BiggestSnowballEver(),
         new BladeOfOlympus(),
         new Bleach(),
+        new Blice(),
         new BloodSniffer(),
         new Blowbow(),
         new BlueShell(),
+        new Boogiewoogie(),
         new Boomstick(),
         new BorderManipulator(),
         new BouncyShield(),
@@ -379,6 +430,7 @@ public class Main extends JavaPlugin {
         new PanicNecklace(),
         new ParachutePants(),
         new PearlComposer(),
+        new PhantomPiercer(),
         new Pizza(),
         new Plaxe(),
         new PortableCarrotFarm(),
@@ -416,6 +468,7 @@ public class Main extends JavaPlugin {
         new SpearOfAres(),
         new SpectralRod(),
         new SpeedEnrichment(),
+        new Spellbook(),
         new SpoonsChance(),
         new SpringBean(),
         new StabilityCore(),
@@ -569,7 +622,6 @@ public class Main extends JavaPlugin {
 
       GlobalCooldowns.register("equilibriumamulet");
       GlobalCooldowns.register("lootswappingstaff");
-      GlobalCooldowns.register("voiceswappingstaff");
 
       Booleans.register("cloakofthespy_active");
       Booleans.register("gracefulwaders_active");
@@ -584,24 +636,26 @@ public class Main extends JavaPlugin {
       // commands
       getCommand("bg").setExecutor(new GiveCommand());
       getCommand("bg").setTabCompleter(new GiveTabCompleter());
+      getCommand("bgitemlist").setExecutor(new BeangameItemlist());
+
       getCommand("bgdeathspectate").setExecutor(new DeathSpectateCommand());
       getCommand("bgdistribute").setExecutor(new BeangameDistribute());
       getCommand("bgdistributefood").setExecutor(new BeangameDistributeFood());
-      getCommand("bggrantrefund").setExecutor(new GrantRefund());
-      getCommand("bgguidebook").setExecutor(new Guidebook());
-      getCommand("bgactiveitemlist").setExecutor(new BeangameActiveItemlist());
-      getCommand("bgitemlist").setExecutor(new BeangameItemlist());
-      getCommand("bginvsee").setExecutor(new BeangameInvsee());
-      getCommand("bgmute").setExecutor(new MuteCommand());
-      getCommand("bgrefund").setExecutor(new Refund());
+      getCommand("bgpvptoggle").setExecutor(new PvpToggleCommand());
       getCommand("bgstart").setExecutor(new BeangameStart());
-      getCommand("bgswapinventories").setExecutor(new SwapInventories());
-      getCommand("pvptoggle").setExecutor(new PvpToggleCommand());
+      getCommand("bggrantrefund").setExecutor(new GrantRefund());
+      getCommand("bgmute").setExecutor(new MuteCommand());
+      getCommand("bgautoroll").setExecutor(new BeangameAutoroll());
+      getCommand("bggamemodes").setExecutor(new GamemodesCommand());
+
+      getCommand("bgactiveitemlist").setExecutor(new BeangameActiveItemlist());
+      getCommand("bginvsee").setExecutor(new BeangameInvsee());
+      getCommand("bgrefund").setExecutor(new Refund());
+
       getCommand("bgexec").setExecutor(new BeangameExecute());
       getCommand("bgexec").setTabCompleter(new BeangameExecute());
-      getCommand("bgrandomizer").setExecutor(new RandomizerCommand());
-      getCommand("bgquickcooldown").setExecutor(new QuickCooldownCommand());
-      getCommand("bgautoroll").setExecutor(new BeangameAutoroll());
+      
+      getCommand("swapinventories").setExecutor(new SwapInventories());
   }
 
   private void registerEvents() {

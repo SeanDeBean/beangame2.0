@@ -1,6 +1,7 @@
 package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameBow;
+import com.beangamecore.items.type.general.BG2tTickingI;
 
 import java.util.List;
 import java.util.Map;
@@ -24,9 +25,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-public class IcicleBow extends BeangameBow {
+public class IcicleBow extends BeangameBow implements BG2tTickingI {
     
-    public void iciclebowParticles(){
+    @Override
+    public void tick(){
         for(Projectile projectile : getArrows()){
             projectile.getWorld().spawnParticle(Particle.SNOWFLAKE, projectile.getLocation(), 3);
         }

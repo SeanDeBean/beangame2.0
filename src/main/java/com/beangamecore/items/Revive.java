@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.beangamecore.LevelingSystem;
 import com.beangamecore.Main;
 import com.beangamecore.commands.BeangameStart;
 import com.beangamecore.items.generic.BeangameItem;

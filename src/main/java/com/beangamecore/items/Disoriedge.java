@@ -3,6 +3,7 @@ package com.beangamecore.items;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerHeldI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.util.Vector;
 
-public class Disoriedge extends BeangameItem implements BGDDealerHeldI {
+public class Disoriedge extends BeangameItem implements BGDDealerHeldI, BGResetableI {
 
     private static final Map<UUID, Boolean> knockLeftNext = new HashMap<>();
     private static final Vector UPWARD_COMPONENT = new Vector(0, 0.25, 0);
@@ -133,7 +134,8 @@ public class Disoriedge extends BeangameItem implements BGDDealerHeldI {
         }
     }
 
-    public void cleanupOldEntries() {
+    @Override
+    public void resetItem() {
         knockLeftNext.entrySet().removeIf(entry -> 
             Bukkit.getPlayer(entry.getKey()) == null
         );
@@ -190,7 +192,7 @@ public class Disoriedge extends BeangameItem implements BGDDealerHeldI {
 
     @Override
     public int getCustomModelData() {
-        return 0;
+        return 109;
     }
 
     @Override

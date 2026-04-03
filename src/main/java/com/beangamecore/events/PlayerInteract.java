@@ -41,7 +41,7 @@ public class PlayerInteract implements Listener{
                 return true;
             });
             if(cd) return;
-            r.onRightClickWithAnimation(event, item, mainHand);
+            r.onRightClickWithAnimation(event, item, mainHand, bgitem.getRightClickAnimation());
         }));
     }
 

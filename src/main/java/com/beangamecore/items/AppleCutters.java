@@ -24,7 +24,6 @@ public class AppleCutters extends BeangameItem implements BGToolI {
         Block block = event.getBlock();
         Material type = block.getType();
 
-        // Use a Set for BlockCategories.leaves for faster lookup if not already a Set
         if (type.toString().toLowerCase().contains("_leaves")) {
             event.setDropItems(false);
             if (ThreadLocalRandom.current().nextDouble() <= 0.4) {

@@ -92,7 +92,7 @@ public class BeangameExecute implements CommandExecutor, TabCompleter {
             Player p1 = Bukkit.getPlayer(args[1]);
             ItemStack stack = item.asItem();
             PlayerInteractEvent event = new PlayerInteractEvent(p1, Action.RIGHT_CLICK_AIR, stack, null, BlockFace.SELF);
-            i.onRightClickWithAnimation(event, stack, true);
+            i.onRightClickWithAnimation(event, stack, true, true);
         }
         if(item instanceof BGLClickableI i){
             Player p1 = Bukkit.getPlayer(args[1]);
@@ -216,9 +216,6 @@ public class BeangameExecute implements CommandExecutor, TabCompleter {
         }
         if(item instanceof BGTalismanI i){
             i.applyTalismanEffects(Bukkit.getPlayer(args[1]), item.asItem());
-        }
-        if(item instanceof BGLPGlobalTick i){
-            i.tick();
         }
         if(item instanceof BGGlobalDeath i){
             i.onGlobalDeath(Bukkit.getPlayer(args[1]), item.asItem());

@@ -34,7 +34,6 @@ public class TestamentToTheDragon extends BeangameItem implements BGRClickableI 
         Location loc = player.getLocation();
         player.getWorld().playSound(loc, Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0F, 1.0F);
         DragonFireball testamenttothedragonfireball = (DragonFireball)player.launchProjectile(DragonFireball.class);
-        testamenttothedragonfireball.setCustomName(player.getName());
         loc.setY(loc.getY() + 1.5D);
         testamenttothedragonfireball.setVelocity(player.getEyeLocation().getDirection().multiply(1));
         // despawn fireballs

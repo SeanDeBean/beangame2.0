@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerInvI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.items.type.voicechat.BGVCMicPacket;
 import com.beangamecore.items.type.voicechat.BGVoicechat;
 import com.beangamecore.recipes.RecipeAPI;
@@ -30,13 +31,18 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class AssassinsHitlist extends BeangameItem implements BGDDealerInvI, BGVoicechat, BGVCMicPacket {
+public class AssassinsHitlist extends BeangameItem implements BGDDealerInvI, BGVoicechat, BGVCMicPacket, BGResetableI {
 
     VoicechatServerApi api;
 
     @Override
     public void onInitialize(VoicechatServerApi api) {
         this.api = api;
+    }
+
+    @Override
+    public void resetItem(){
+        Longs.register("spearofares_hits");
     }
 
     @Override

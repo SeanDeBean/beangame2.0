@@ -52,17 +52,17 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>3.0.5</version>  <!-- or latest version -->
+			<version>3.0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>5.0.1</version> <!-- Use the latest stable version -->
+			<version>5.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.33</version> <!-- Use the latest stable version -->
+			<version>8.0.33</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -70,7 +70,6 @@
 			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
-		<!--This adds the Spigot API artifact to the build -->
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
@@ -88,6 +87,13 @@
 			<artifactId>multiverse-core</artifactId>
 			<version>4.3.14</version>
 			<scope>provided</scope>
+		</dependency>
+		<!-- Vosk Speech-to-Text -->
+		<dependency>
+			<groupId>com.alphacephei</groupId>
+			<artifactId>vosk</artifactId>
+			<version>0.3.45</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 
@@ -126,7 +132,6 @@
 		</pluginManagement>
 
         <plugins>
-            <!-- This section already exists -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -136,7 +141,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Add the Maven Shade Plugin -->
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -149,6 +153,12 @@
 						</goals>
 						<configuration>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<relocations>
+								<relocation>
+									<pattern>org.vosk</pattern>
+									<shadedPattern>com.beangamecore.libs.vosk</shadedPattern>
+								</relocation>
+							</relocations>
 						</configuration>
 					</execution>
 				</executions>

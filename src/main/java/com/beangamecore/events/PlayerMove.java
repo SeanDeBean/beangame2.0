@@ -29,7 +29,7 @@ public class PlayerMove implements Listener{
         });
         if (Cooldowns.onCooldown("immobilized", uuid)){
             long immobilizedtimerremaining = Cooldowns.getRemainingCooldown("immobilized", uuid) / 1000L;
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy("§6Immobilized for " + immobilizedtimerremaining + " second(s)!"));
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy("§bImmobilized for " + immobilizedtimerremaining + " second(s)!"));
             event.setCancelled(true);
             return;
         }

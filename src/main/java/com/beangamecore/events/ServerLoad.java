@@ -12,7 +12,12 @@ import com.beangamecore.commands.DeathSpectateCommand;
 import com.beangamecore.commands.PvpToggleCommand;
 import com.beangamecore.items.*;
 import com.beangamecore.items.generic.BeangameItem;
-import com.beangamecore.items.type.BGLPGlobalTick;
+import com.beangamecore.items.type.general.BG1sTickingI;
+import com.beangamecore.items.type.general.BG1tTickingI;
+import com.beangamecore.items.type.general.BG2tTickingI;
+import com.beangamecore.items.type.general.BG30sTickingI;
+import com.beangamecore.items.type.general.BG3sTickingI;
+import com.beangamecore.items.type.general.BGCyclingI;
 import com.beangamecore.registry.BeangameBlockData;
 import com.beangamecore.registry.BeangameItemRegistry;
 import com.beangamecore.items.type.BGArmorI;
@@ -40,31 +45,25 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import com.beangamecore.Main;
 
-public class ServerLoad implements Listener{
+public class ServerLoad implements Listener {
 
     private static boolean chronobreak = false;
     
     public static Map<UUID, Boolean> sizeadjusted = new HashMap<>();
     public static Team noCollisions;
 
-
-
     private void timer3seconds(){
         Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(), () -> {
-            for(BeangameItem i : BeangameItemRegistry.collection()){
-                i.doIf(BGLPGlobalTick.class, BGLPGlobalTick::tick);
-            }
             // task to execute every 3 seconds starting 5 seconds after server startup
-            UltimateGamble.ultimategambleTimer();
-            XrayHelmet.resetSlimes();
+            for(BeangameItem i : BeangameItemRegistry.collection()){
+                i.doIf(BG3sTickingI.class, BG3sTickingI::tick);
+            }
 
             for(World world : Bukkit.getWorlds()){
                 Map<Block, BeangameBlock> blocks = BeangameBlockData.getLoadedBeangameBlocks(world);
@@ -107,21 +106,6 @@ public class ServerLoad implements Listener{
                         if(item instanceof BGInvUnstackable u && u.alreadyActivated(player.getUniqueId(), item)) continue;
                         if(item instanceof BGInvUnstackable u) u.activate(player.getUniqueId(), item);
                         if(item instanceof BGArmorI a) a.applyArmorEffects(player, stack);
-                    }
-                }
-                if (ItemNBT.hasBeanGameTag(player.getEquipment().getBoots())){
-                    ItemStack boots = player.getEquipment().getBoots();
-                    if(ItemNBT.isBeanGame(boots, NamespacedKey.fromString("beangame:gracefulwaders"))){
-                        if(!player.isFlying()){
-                            player.setAllowFlight(true);
-                            Booleans.setBoolean("gracefulwaders_active", player.getUniqueId(), true);
-                        }
-                    }
-                }
-                if (ItemNBT.hasBeanGameTag(player.getEquipment().getLeggings())){
-                    ItemStack leggings = player.getEquipment().getLeggings();
-                    if(ItemNBT.isBeanGame(leggings, NamespacedKey.fromString("beangame:parachutepants"))){
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 100, 0, false, false));
                     }
                 }
 
@@ -179,32 +163,24 @@ public class ServerLoad implements Listener{
                     BeangameItemRegistry.get(NamespacedKey.fromString("beangame:chronobreak"), Chronobreak.class).ifPresent(c -> c.chronobreakReset(player));
                 }
             }
-            BeangameItemRegistry.get(NamespacedKey.fromString("beangame:portalmaker"), PortalMaker.class).ifPresent(PortalMaker::portalmakerParticles);
-            BeangameItemRegistry.get(NamespacedKey.fromString("beangame:dropthecarts"), DropTheCarts.class).ifPresent(DropTheCarts::dropthecartsParticles);
-        }, 100L, 20L);
-    }
 
-    private void processParticles() {
-        BeangameItemRegistry.get(Key.bg("apollosbow"), ApollosBow.class).ifPresent(ApollosBow::apollosbowParticles);
-        BeangameItemRegistry.get(Key.bg("blowbow"), Blowbow.class).ifPresent(Blowbow::blowbowParticles);
-        BeangameItemRegistry.get(Key.bg("explosivebow"), ExplosiveBow.class).ifPresent(ExplosiveBow::explosivebowParticles);
-        BeangameItemRegistry.get(Key.bg("genrecheck"), GenreCheck.class).ifPresent(GenreCheck::genrecheckParticles);
-        BeangameItemRegistry.get(Key.bg("iciclebow"), IcicleBow.class).ifPresent(IcicleBow::iciclebowParticles);
-        BeangameItemRegistry.get(Key.bg("warpingtrader"), WarpingTrader.class).ifPresent(WarpingTrader::warpingtraderParticles);
-        BeangameItemRegistry.get(Key.bg("talismanofjumbledfates"), TalismanOfJumbledFates.class).ifPresent(TalismanOfJumbledFates::jumblingParticles);
+
+            for(BeangameItem i : BeangameItemRegistry.collection()){
+                i.doIf(BG1sTickingI.class, BG1sTickingI::tick);
+            }
+        }, 100L, 20L);
     }
 
     private void timer2ticks() {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(), () -> {
-            processParticles();
-    
+            for(BeangameItem i : BeangameItemRegistry.collection()){
+                i.doIf(BG2tTickingI.class, BG2tTickingI::tick);
+            }
+
             // Queue players needing respawn
             if (BeangameStart.gamerunning) {
                 queuePlayersForRespawn();
             }
-
-            // display held item cooldowns
-            
     
             // Start processing queue if not already running
         }, 100L, 2L);
@@ -316,13 +292,10 @@ public class ServerLoad implements Listener{
             if(!p.getGameMode().equals(GameMode.CREATIVE)){
                 p.getInventory().clear();
                 p.getEquipment().setBoots(BeangameItemRegistry.getRaw(Key.bg("carrotslides")).asItem(), true);
-                p.getInventory().setItem(0, BeangameItemRegistry.getRaw(Key.bg("beangameguidebook")).asItem());
             }
 
         }
     }
-
-
 
     private void timer1tick(){
         // every tick
@@ -336,12 +309,10 @@ public class ServerLoad implements Listener{
             
             // beangame item tick()
             Main.getPlugin().getSeaCreatureRegistry().tickAllActiveCreatures();
-            CrownOfTheCosmos.tick();
-            BeangameItemRegistry.getRaw(Key.bg("carrioncall"), CarrionCall.class).tickAllBirds();;
-            BeangameItemRegistry.getRaw(Key.bg("cheesetouch"), CheeseTouch.class).cheesetouchUpdateRats();
-            BeangameItemRegistry.getRaw(Key.bg("cosmicfury"), CosmicFury.class).cosmicFuryUpdateStars();
-            BeangameItemRegistry.getRaw(Key.bg("suicidalspider"), SuicidalSpider.class).suicidespiderUpdateSpiders();
-            BeangameItemRegistry.getRaw(Key.bg("tomeofblastsight"), TomeOfBlastsight.class).updateAllDisplays();
+
+            for(BeangameItem i : BeangameItemRegistry.collection()){
+                i.doIf(BG1tTickingI.class, BG1tTickingI::tick);
+            }
 
             Map<BeangameItem, Set<UUID>> currentlyHoldingPlayers = new HashMap<>();
             Set<BeangameItem> allHeldTalismans = new HashSet<>();
@@ -397,6 +368,14 @@ public class ServerLoad implements Listener{
     }
 
 
+    private void timer30seconds(){
+        // every tick
+        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(Main.getPlugin(), () -> {
+            for(BeangameItem i : BeangameItemRegistry.collection()){
+                i.doIf(BG30sTickingI.class, BG30sTickingI::tick);
+            }
+        }, 100L, 20*30L);
+    }
 
     @EventHandler
     private void onStart(org.bukkit.event.server.ServerLoadEvent event){
@@ -409,6 +388,7 @@ public class ServerLoad implements Listener{
         }
         noCollisions.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
+        timer30seconds();
         timer3seconds();
         timer1second();
         timer2ticks();
@@ -418,7 +398,9 @@ public class ServerLoad implements Listener{
     }
 
     private void startItemCycles(){
-        BeangameItemRegistry.get(Key.bg("spearofares"), SpearOfAres.class).ifPresent(SpearOfAres::startStateCycleTask);
+        for(BeangameItem i : BeangameItemRegistry.collection()){
+            i.doIf(BGCyclingI.class, BGCyclingI::startCycle);
+         }
     }
 
     private void defaultSize(Player player){

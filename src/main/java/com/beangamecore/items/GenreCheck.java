@@ -1,6 +1,7 @@
 package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameBow;
+import com.beangamecore.items.type.general.BG2tTickingI;
 
 import java.util.List;
 import java.util.Map;
@@ -13,9 +14,10 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class GenreCheck extends BeangameBow {
+public class GenreCheck extends BeangameBow implements BG2tTickingI {
     
-    public void genrecheckParticles(){
+    @Override
+    public void tick(){
         for(Projectile projectile : getArrows()){
             if(projectile.isOnGround() || projectile.isDead()){
                 removeArrow(projectile);

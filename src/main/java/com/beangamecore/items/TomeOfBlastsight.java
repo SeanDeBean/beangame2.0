@@ -30,10 +30,11 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.BGDamageInvI;
+import com.beangamecore.items.type.general.BG1tTickingI;
 import com.beangamecore.items.type.talisman.BGHPTalismanI;
 import com.beangamecore.items.type.talisman.BGInvUnstackable;
 
-public class TomeOfBlastsight extends BeangameItem implements BGHPTalismanI, BGDamageInvI, BGInvUnstackable {
+public class TomeOfBlastsight extends BeangameItem implements BGHPTalismanI, BGDamageInvI, BGInvUnstackable, BG1tTickingI {
 
     private static final Map<Integer, TextDisplay> activeDisplays = new HashMap<>(); // TNT entity ID -> TextDisplay
     private static final Set<Integer> tntToShow = new HashSet<>(); // TNT that should have displays this tick
@@ -53,8 +54,8 @@ public class TomeOfBlastsight extends BeangameItem implements BGHPTalismanI, BGD
         }
     }
     
-    // This should be called from your main plugin EVERY TICK
-    public void updateAllDisplays() {
+    @Override
+    public void tick() {
         // First, remove displays for TNT that are no longer marked OR no longer exist
         Iterator<Map.Entry<Integer, TextDisplay>> iterator = activeDisplays.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -270,12 +271,12 @@ public class TomeOfBlastsight extends BeangameItem implements BGHPTalismanI, BGD
     @Override
     public Material getMaterial() {
         // Changed from SUGAR to ENCHANTED_BOOK for "tome" aesthetic
-        return Material.ENCHANTED_BOOK;
+        return Material.BOOK;
     }
 
     @Override
     public int getCustomModelData() {
-        return 0; // Changed from 101 to avoid conflict
+        return 103;
     }
 
     @Override

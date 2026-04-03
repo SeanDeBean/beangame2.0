@@ -3,6 +3,7 @@ package com.beangamecore.items;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerHeldI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -35,7 +36,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-public class DuelistsDance extends BeangameItem implements BGDDealerHeldI {
+public class DuelistsDance extends BeangameItem implements BGDDealerHeldI, BGResetableI {
 
     private enum Direction {
         NORTH, EAST, SOUTH, WEST;
@@ -197,7 +198,8 @@ public class DuelistsDance extends BeangameItem implements BGDDealerHeldI {
         };
     }
 
-    public void resetVitals(){
+    @Override
+    public void resetItem(){
         attackerDirections.clear();
         attackerTargets.clear();
     }

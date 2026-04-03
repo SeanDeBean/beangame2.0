@@ -76,7 +76,7 @@ public class Rebirth extends BeangameItem implements BGRClickableI, BGLateDamage
                 }
             }, i * 5L);
         }
-        Revive.noRevive.add(uuid);
+        if(!Revive.noRevive.contains(uuid)) Revive.noRevive.add(uuid);
         player.setGameMode(GameMode.SPECTATOR);
 
         // zombie in the ice
@@ -110,6 +110,8 @@ public class Rebirth extends BeangameItem implements BGRClickableI, BGLateDamage
                     block.setType(Material.AIR);
                 }
             }
+            Revive.noRevive.remove(uuid);
+            if(clone.isValid()) clone.remove();
             player.teleport(clone, TeleportCause.SPECTATE);
             player.setGameMode(GameMode.SURVIVAL);
             final boolean bool = rebirth;
@@ -121,8 +123,6 @@ public class Rebirth extends BeangameItem implements BGRClickableI, BGLateDamage
                     player.damage(999, damageSource);
                 }
             }, 1);
-            clone.remove();
-            Revive.noRevive.remove(uuid);
         }, 180L);
     }
 

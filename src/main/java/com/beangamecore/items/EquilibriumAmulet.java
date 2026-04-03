@@ -3,6 +3,7 @@ package com.beangamecore.items;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.util.GlobalCooldowns;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -21,11 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class EquilibriumAmulet extends BeangameItem implements BGRClickableI {
+public class EquilibriumAmulet extends BeangameItem implements BGRClickableI, BGResetableI {
     
     public static double EquilibriumAmuletCooldown = 27.0;
 
-    public void equalibriumamuletReset(){
+    public void resetItem(){
         EquilibriumAmuletCooldown = 27.0;
     }
 

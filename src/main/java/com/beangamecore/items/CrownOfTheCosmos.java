@@ -2,6 +2,8 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGArmorI;
+import com.beangamecore.items.type.general.BG1tTickingI;
+
 import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -20,7 +22,7 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 
 import java.util.*;
 
-public class CrownOfTheCosmos extends BeangameItem implements BGArmorI {
+public class CrownOfTheCosmos extends BeangameItem implements BGArmorI, BG1tTickingI {
     
     public static HashMap<UUID, List<CosmicCirclingStar>> stars = new HashMap<>();
 
@@ -48,7 +50,8 @@ public class CrownOfTheCosmos extends BeangameItem implements BGArmorI {
         }
     }
 
-    public static void tick(){
+    @Override
+    public void tick(){
         stars.forEach((u, l) -> l.forEach(CosmicCirclingStar::tickFallingStars));
     }
 

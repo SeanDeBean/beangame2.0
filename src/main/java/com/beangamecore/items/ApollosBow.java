@@ -2,6 +2,7 @@ package com.beangamecore.items;
 
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameBow;
+import com.beangamecore.items.type.general.BG2tTickingI;
 import com.beangamecore.util.Cooldowns;
 
 import java.util.List;
@@ -23,9 +24,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
-public class ApollosBow extends BeangameBow {
+public class ApollosBow extends BeangameBow implements BG2tTickingI {
     
-    public void apollosbowParticles(){
+    @Override
+    public void tick(){
         for(Projectile projectile : getArrows()){
             if(projectile.isOnGround() || projectile.isDead()){
                 removeArrow(projectile);

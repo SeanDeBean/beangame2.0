@@ -2,6 +2,7 @@ package com.beangamecore.items;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,11 +32,12 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class CookieClicker extends BeangameItem implements BGRClickableI, BGMPTalismanI, BGInvUnstackable {
+public class CookieClicker extends BeangameItem implements BGRClickableI, BGMPTalismanI, BGInvUnstackable, BGResetableI {
     
     public HashMap<UUID, CookieClicker.Instance> instances = new HashMap<>();
 
-    public void reset(){
+    @Override
+    public void resetItem(){
         for(UUID u : instances.keySet()){
             Player p = Bukkit.getPlayer(u);
             if(p != null && p.getOpenInventory().getTitle().equals("§6Cookie Clicker ™")) p.closeInventory();

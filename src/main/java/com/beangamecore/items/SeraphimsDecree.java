@@ -746,7 +746,7 @@ public class SeraphimsDecree extends BeangameItem implements BGLClickableI, BGMP
 
     @Override
     public int getCustomModelData() {
-        return 0;
+        return 106;
     }
 
     @Override

@@ -22,23 +22,21 @@ import org.bukkit.potion.PotionEffectType;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BG3sTickingI;
 import com.beangamecore.registry.BeangameItemRegistry;
 import com.beangamecore.util.Cooldowns;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class UltimateGamble extends BeangameItem implements BGRClickableI {
+public class UltimateGamble extends BeangameItem implements BGRClickableI, BG3sTickingI {
 
     public void setActive(boolean active){
         UltimateGambleActive = active;
     }
 
-    public static boolean UltimateGambleActive = true;
-
-    private static CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<>();
-
-    public static void ultimategambleTimer(){
+    @Override
+    public void tick(){
         for(Player player : players){
             if(!player.getGameMode().equals(GameMode.SURVIVAL)){
                 players.remove(player);
@@ -49,7 +47,11 @@ public class UltimateGamble extends BeangameItem implements BGRClickableI {
             player.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 100, 2));
             Cooldowns.setCooldown("attack", player.getUniqueId(), 5000);
         }  
-    }
+    };
+
+    public static boolean UltimateGambleActive = true;
+
+    private static CopyOnWriteArrayList<Player> players = new CopyOnWriteArrayList<>();
 
     @Override
     public boolean onRightClick(PlayerInteractEvent event, ItemStack stack) {

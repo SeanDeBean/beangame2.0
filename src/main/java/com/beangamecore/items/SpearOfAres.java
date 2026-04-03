@@ -25,12 +25,19 @@ import org.bukkit.scheduler.BukkitTask;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerHeldI;
+import com.beangamecore.items.type.general.BGCyclingI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.util.Longs;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class SpearOfAres extends BeangameItem implements BGDDealerHeldI {
+public class SpearOfAres extends BeangameItem implements BGDDealerHeldI, BGCyclingI, BGResetableI {
+
+    @Override
+    public void resetItem(){
+        Longs.register("spearofares_hits");
+    }
 
     private static int TOGGLE_DURATION = 14; // seconds
     private static boolean ACTIVE = false;
@@ -42,7 +49,8 @@ public class SpearOfAres extends BeangameItem implements BGDDealerHeldI {
     private static final Sound EFFECT_TRIGGER_SOUND = Sound.ENTITY_WITHER_SHOOT;
     private static final float SOUND_VOLUME = 0.5f;
 
-    public void startStateCycleTask(){
+    @Override
+    public void startCycle(){
         task = Bukkit.getScheduler().runTaskTimer(Main.getPlugin(), () -> {
             ACTIVE = !ACTIVE;
             String message = ACTIVE ? 
@@ -57,7 +65,6 @@ public class SpearOfAres extends BeangameItem implements BGDDealerHeldI {
                 if (player.getInventory().getItemInMainHand() != null && this.asItem().isSimilar(player.getInventory().getItemInMainHand())) {
 
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
-                    spawnParticles(player, ACTIVE ? Particle.DUST : Particle.SMOKE);
                     player.playSound(player.getLocation(), sound, SOUND_VOLUME, pitch);
                 }
             });

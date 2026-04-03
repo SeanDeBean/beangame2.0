@@ -29,9 +29,10 @@ import org.bukkit.inventory.meta.trim.ArmorTrim;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerInvI;
+import com.beangamecore.items.type.general.BG2tTickingI;
 import com.beangamecore.util.Cooldowns;
 
-public class TalismanOfJumbledFates extends BeangameItem implements BGDDealerInvI {
+public class TalismanOfJumbledFates extends BeangameItem implements BGDDealerInvI, BG2tTickingI {
 
     @Override
     public void attackerInventoryOnHit(EntityDamageByEntityEvent event, ItemStack item){
@@ -124,8 +125,8 @@ public class TalismanOfJumbledFates extends BeangameItem implements BGDDealerInv
         return protect;
     }
 
-
-    public void jumblingParticles(){
+    @Override
+    public void tick(){
         for(Player player : Bukkit.getOnlinePlayers()){
             if(Cooldowns.onCooldown("jumbling", player.getUniqueId()) && player.getGameMode() != GameMode.SPECTATOR){
                 DustOptions dustOptions = new DustOptions(Color.fromRGB(255, 0, 255), 2);

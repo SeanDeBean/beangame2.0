@@ -1,7 +1,7 @@
 package com.beangamecore.items.generic;
 
 import com.beangamecore.Main;
-import com.beangamecore.commands.QuickCooldownCommand;
+import com.beangamecore.gamemodes.QuickCooldownsGamemode;
 import com.beangamecore.registry.BeangameItemRegistry;
 import com.beangamecore.util.Cooldowns;
 
@@ -61,6 +61,10 @@ public abstract class BeangameItem implements Keyed {
 
     public boolean inItemRotation(){
         return Main.getConfiguration().getItemMeta(this).inRotation();
+    }
+
+    public boolean isUsable() {
+        return !Main.getPlugin().getBeangameModes().isItemDisabledInAnyEnabledMode(getKey().toString());
     }
 
     public boolean inFoodItemRotation(){
@@ -168,8 +172,8 @@ public abstract class BeangameItem implements Keyed {
 
             long adjustedCooldown = (long) (baseCooldown * cooldownMultiplier);
 
-            if(QuickCooldownCommand.getRandomizer()){
-                adjustedCooldown *= 0.54;
+            if(Main.getPlugin().getBeangameModes().getGameMode("quick_cooldowns").isEnabled()){
+                adjustedCooldown *= QuickCooldownsGamemode.getMultiplier();
             }
 
             cooldown.put(uuid, System.currentTimeMillis() + adjustedCooldown);
@@ -190,6 +194,7 @@ public abstract class BeangameItem implements Keyed {
         NBT.modify(stack, (nbt) -> {
             nbt.setString("beangame.itemkey", getKey().toString());
         });
+        if(Main.getPlugin().getBeangameModes().isEnabled("brangame")) stack.setType(Material.BREAD);
         return stack;
     }
 
@@ -233,6 +238,10 @@ public abstract class BeangameItem implements Keyed {
 
     public boolean isGlidingArmor(){
         return false;
+    }
+
+    public boolean getRightClickAnimation(){
+        return true;
     }
 
     public boolean isUnbreakable() {

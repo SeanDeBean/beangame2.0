@@ -1,7 +1,7 @@
 package com.beangamecore.events;
 
 import com.beangamecore.blocks.type.BGBreakableB;
-import com.beangamecore.commands.RandomizerCommand;
+import com.beangamecore.gamemodes.RandomizerGamemode;
 import com.beangamecore.blocks.generic.BeangameBlock;
 import com.beangamecore.registry.BeangameBlockData;
 import com.beangamecore.registry.BeangameItemRegistry;
@@ -64,8 +64,8 @@ public class BlockBreak implements Listener{
 
 
         // randomizer
-        if(RandomizerCommand.getRandomizer()){
-            RandomizerCommand.randomDrops(event);
+        if(Main.getPlugin().getBeangameModes().getGameMode("randomizer").isEnabled()){
+            RandomizerGamemode.randomDrops(event);
         }
 
 

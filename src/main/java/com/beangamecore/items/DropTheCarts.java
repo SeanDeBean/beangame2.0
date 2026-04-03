@@ -8,6 +8,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BG1sTickingI;
+
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -22,7 +24,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class DropTheCarts extends BeangameItem implements BGRClickableI {
+public class DropTheCarts extends BeangameItem implements BGRClickableI, BG1sTickingI {
     
     private static CopyOnWriteArrayList<Entity> dropthecartsTracker = new CopyOnWriteArrayList<>();
     
@@ -52,7 +54,8 @@ public class DropTheCarts extends BeangameItem implements BGRClickableI {
         return true;
     }
 
-    public void dropthecartsParticles(){
+    @Override
+    public void tick(){
         Iterator<Entity> iterator = dropthecartsTracker.iterator();
         while(iterator.hasNext()){
             Entity minecart = iterator.next();

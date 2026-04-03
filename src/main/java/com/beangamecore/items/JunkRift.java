@@ -166,7 +166,7 @@ public class JunkRift extends BeangameItem implements BGRClickableI {
 
     @Override
     public int getCustomModelData() {
-        return 0;
+        return 105;
     }
 
     @Override

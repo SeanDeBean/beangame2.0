@@ -23,8 +23,9 @@ import com.beangamecore.Main;
 import com.beangamecore.entities.rat.CheeseTouchRat;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerInvI;
+import com.beangamecore.items.type.general.BG1tTickingI;
 
-public class CheeseTouch extends BeangameItem implements BGDDealerInvI {
+public class CheeseTouch extends BeangameItem implements BGDDealerInvI, BG1tTickingI {
     
     private static final int NUMBER_OF_RATS = 12;
     private static final double RADIUS = 4.0;
@@ -67,7 +68,8 @@ public class CheeseTouch extends BeangameItem implements BGDDealerInvI {
         }, 0, 1).getTaskId();
     }
 
-    public void cheesetouchUpdateRats() {
+    @Override
+    public void tick() {
         Set<CheeseTouchRat> toRemove = new HashSet<>();
         Iterator<CheeseTouchRat> iterator = CheeseTouchRat.rats.iterator();
         

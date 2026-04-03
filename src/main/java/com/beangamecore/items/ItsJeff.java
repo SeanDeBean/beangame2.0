@@ -158,8 +158,9 @@ public class ItsJeff extends BeangameItem implements BGRClickableI {
         }
         
         private void capturePlayer(Player target, UUID jeffUuid) {
-            playerToJeff.put(target.getUniqueId(), jeffUuid);
-            Revive.noRevive.add(target.getUniqueId());
+            UUID targetUUID = target.getUniqueId();
+            playerToJeff.put(targetUUID, jeffUuid);
+            if(!Revive.noRevive.contains(targetUUID)) Revive.noRevive.add(targetUUID);
             target.setGameMode(GameMode.SPECTATOR);
             
             Player jeff = Bukkit.getServer().getPlayer(jeffUuid);

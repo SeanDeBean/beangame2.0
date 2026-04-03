@@ -10,6 +10,7 @@ import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGLClickableI;
 import com.beangamecore.items.type.damage.entity.BGDDealerHeldI;
+import com.beangamecore.items.type.general.BG1tTickingI;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -26,7 +27,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class CosmicFury extends BeangameItem implements BGLClickableI, BGDDealerHeldI {
+public class CosmicFury extends BeangameItem implements BGLClickableI, BGDDealerHeldI, BG1tTickingI {
 
     static Random CosmicFuryRandomizer = new Random();
 
@@ -69,7 +70,8 @@ public class CosmicFury extends BeangameItem implements BGLClickableI, BGDDealer
         }
     }
 
-    public void cosmicFuryUpdateStars() {
+    @Override
+    public void tick() {
         List<CosmicFallingStar> toRemove = new ArrayList<>();
 
         for (CosmicFallingStar star : CosmicFallingStar.fallingStars) {

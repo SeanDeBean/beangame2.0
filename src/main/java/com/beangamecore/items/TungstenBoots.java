@@ -20,16 +20,11 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 
-import de.tr7zw.nbtapi.NBT;
-
 public class TungstenBoots extends BeangameItem {
 
+    @Override
     public ItemStack asItem(){
-        ItemStack stack = new ItemStack(getMaterial(), getCraftingAmount());
-        Main.getConfiguration().applyMeta(stack, getKey());
-        NBT.modify(stack, (nbt) -> {
-            nbt.setString("beangame.itemkey", getKey().toString());
-        });
+        ItemStack stack = super.asItem();
         ItemMeta meta = stack.getItemMeta();
         NamespacedKey nsk1 = new NamespacedKey(Main.getPlugin(), "beangame.tungstenboots1");
         NamespacedKey nsk2 = new NamespacedKey(Main.getPlugin(), "beangame.tungstenboots2");

@@ -17,7 +17,10 @@ import org.bukkit.util.Vector;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGLClickableI;
+import com.beangamecore.items.type.general.BG1tTickingI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.items.type.talisman.BGMPTalismanI;
+import com.beangamecore.util.Cooldowns;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -30,19 +33,19 @@ import org.bukkit.util.Transformation;
 import org.joml.Vector3f;
 import org.joml.Quaternionf;
 
-public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTalismanI {
+public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTalismanI, BG1tTickingI, BGResetableI {
 
     // Configuration constants
-    private static final int MAX_BIRDS = 24;
-    private static final int BIRD_SPAWN_INTERVAL_TICKS = 20; // 1 second base
-    private static final int BIRD_SPAWN_FAST_INTERVAL_TICKS = 13; // 1.5x speed (20/1.5 ≈ 13)
-    private static final int BIRD_LIFETIME_TICKS = 600; // 30 seconds
+    private static final int MAX_BIRDS = 8;
+    private static final int BIRD_SPAWN_INTERVAL_TICKS = 20 * 8; // 1 second base
+    private static final int BIRD_SPAWN_FAST_INTERVAL_TICKS = 20 * 6;
+    private static final int BIRD_LIFETIME_TICKS = 20*60; // 30 seconds
     private static final double BIRD_ORBIT_RADIUS_BASE = 4.5; // Increased by 2 from original 2.5
-    private static final double BIRD_ATTACK_RANGE = 4.0;
-    private static final int BLINDNESS_DURATION_TICKS = 20; // 1 second
+    private static final double BIRD_ATTACK_RANGE = 5.0;
+    private static final int BLINDNESS_DURATION_TICKS = 10; // 1 second
     private static final int BLINDNESS_AMPLIFIER = 0;
     private static final double ATTACK_1_2_DAMAGE = 1.0;
-    private static final double ATTACK_3_DAMAGE = 4.0;
+    private static final double ATTACK_3_DAMAGE = 3.0;
     private static final double OUTWARD_VARIATION_CHANCE = 0.3; // 30% chance to fly further out
     private static final double OUTWARD_VARIATION_AMOUNT = 2.0; // Extra radius when varying
     
@@ -56,14 +59,16 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
     // Per-player tracking
     private final Map<UUID, Long> lastSpawnTime = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> playerBirdCount = new ConcurrentHashMap<>();
-    
-    public CarrionCall() {}
+
+    private static final Map<UUID, Map<UUID, Long>> targetAttackCooldowns = new ConcurrentHashMap<>(); // targetUUID -> (birdOwnerUUID -> lastAttackTime)
+    private static final Set<UUID> recentlyAttacked = ConcurrentHashMap.newKeySet();
     
     /**
      * Call this from your main plugin's tick handler (e.g., every tick or every 2 ticks)
      * Updates ALL birds globally, separate from talisman effect application
      */
-    public void tickAllBirds() {
+    @Override
+    public void tick() {
         synchronized (allBirds) {
             Iterator<BlackBird> iterator = allBirds.iterator();
             while (iterator.hasNext()) {
@@ -101,7 +106,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
         }
         
         // Check if we should show purple aura (high bird count)
-        if (currentBirds >= MAX_BIRDS / 2) {
+        if (currentBirds >= 2 * MAX_BIRDS / 3) {
             hasPurpleAura = true;
         }
         
@@ -134,7 +139,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
         }
         
         // Spawn effect
-        player.getWorld().playSound(spawnLoc, Sound.ENTITY_BAT_AMBIENT, 0.3f, 0.8f + (float)Math.random() * 0.4f);
+        player.getWorld().playSound(spawnLoc, Sound.ENTITY_BAT_AMBIENT, 0.1f, 0.8f + (float)Math.random() * 0.4f);
         player.getWorld().spawnParticle(Particle.SMOKE, spawnLoc, 5, 0.2, 0.2, 0.2, 0.01);
     }
     
@@ -197,7 +202,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
         }
         
         if (playerBirds.isEmpty()) {
-            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.5f, 1.2f);
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 1.2f);
             return;
         }
         
@@ -206,7 +211,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             player.getLocation().getDirection(), 20.0);
         
         if (target == null) {
-            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.5f, 1.2f);
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 1.2f);
             return;
         }
         
@@ -219,7 +224,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
         });
         
         // Sound effect
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 1.0f, 0.8f);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 0.6f, 0.8f);
     }
     
     private LivingEntity findTargetInDirection(Player player, Location start, Vector direction, double range) {
@@ -240,7 +245,8 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
         return null;
     }
 
-    public void removeAllBirds() {
+    @Override
+    public void resetItem() {
         synchronized (allBirds) {
             for (BlackBird bird : allBirds) {
                 bird.remove();
@@ -256,7 +262,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
     
     @Override
     public long getBaseCooldown() {
-        return 800L;
+        return 1600L;
     }
     
     @Override
@@ -266,7 +272,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
     
     @Override
     public boolean isInItemRotation() {
-        return false;
+        return true;
     }
     
     @Override
@@ -463,7 +469,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             wingAnimationTick++;
             
             // Owner offline or null, remove bird
-            if (owner == null || !owner.isOnline() || owner.getWorld().getName().toString() != base.getWorld().getName().toString()) {
+            if (owner == null || !owner.isOnline() || owner.getWorld().getName().toString() != base.getWorld().getName().toString() || owner.getGameMode().equals(GameMode.SPECTATOR)) {
                 remove();
                 return;
             }
@@ -608,7 +614,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             targetLoc.setPitch(0);
             
             // Teleport bat to new position
-            base.teleport(targetLoc);
+            if(!base.hasPotionEffect(PotionEffectType.SLOWNESS)) base.teleport(targetLoc);
             base.getWorld().spawnParticle(Particle.SMOKE, targetLoc.add(0, 0.33, 0), 1, 0.1, 0.1, 0.1, 0.01);
         }
         
@@ -618,19 +624,82 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             Location birdLoc = base.getLocation();
             World world = birdLoc.getWorld();
             
-            // Find nearby enemies
+            // Clean up old entries from this bird's recent attacks
+            long currentTime = System.currentTimeMillis();
+            recentlyAttacked.removeIf(uuid -> {
+                Long lastAttack = getLastAttackTime(uuid);
+                return lastAttack != null && currentTime - lastAttack >= 1000;
+            });
+            
+            // Find nearby enemies that haven't been attacked recently
+            LivingEntity bestTarget = null;
+            double bestDistance = Double.MAX_VALUE;
+            
             for (Entity entity : world.getNearbyEntities(birdLoc, BIRD_ATTACK_RANGE, BIRD_ATTACK_RANGE, BIRD_ATTACK_RANGE)) {
-                if (isValidTarget(entity)) {
-                    performAttack((LivingEntity) entity);
-                    break;
-                }
+                if (isValidTarget(entity) && entity instanceof LivingEntity living) {
+                    UUID targetUUID = entity.getUniqueId();
 
+                    if(living instanceof Player p && p.getGameMode().equals(GameMode.SPECTATOR)) continue;
+                    
+                    // Skip if this bird already attacked this target recently
+                    if (recentlyAttacked.contains(targetUUID)) continue;
+                    
+                    // Skip if any bird from this owner attacked this target in the last second
+                    if (isTargetOnCooldown(targetUUID)) continue;
+                    
+                    double distance = birdLoc.distanceSquared(entity.getLocation());
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        bestTarget = living;
+                    }
+                }
+            }
+            
+            if (bestTarget != null) {
+                performAttack(bestTarget);
+            }
+        }
+
+        private boolean isTargetOnCooldown(UUID targetUUID) {
+            Map<UUID, Long> ownerCooldowns = targetAttackCooldowns.get(targetUUID);
+            if (ownerCooldowns == null) return false;
+            
+            Long lastAttack = ownerCooldowns.get(ownerUUID);
+            if (lastAttack == null) return false;
+            
+            return System.currentTimeMillis() - lastAttack < 1000; // 1 second cooldown
+        }
+
+        private Long getLastAttackTime(UUID targetUUID) {
+            Map<UUID, Long> ownerCooldowns = targetAttackCooldowns.get(targetUUID);
+            if (ownerCooldowns == null) return null;
+            return ownerCooldowns.get(ownerUUID);
+        }
+
+        private void recordAttack(UUID targetUUID) {
+            targetAttackCooldowns.computeIfAbsent(targetUUID, k -> new ConcurrentHashMap<>())
+                .put(ownerUUID, System.currentTimeMillis());
+            recentlyAttacked.add(targetUUID);
+        }
+
+        private void clearTargetCooldown(UUID targetUUID) {
+            Map<UUID, Long> ownerCooldowns = targetAttackCooldowns.get(targetUUID);
+            if (ownerCooldowns != null) {
+                ownerCooldowns.remove(ownerUUID);
+                // Clean up empty maps to prevent memory leak
+                if (ownerCooldowns.isEmpty()) {
+                    targetAttackCooldowns.remove(targetUUID);
+                }
             }
         }
         
         private void performAttack(LivingEntity target) {
             attacksRemaining--;
             
+            // Record this attack for cooldown tracking
+            recordAttack(target.getUniqueId());
+            
+            // ... rest of the method remains the same
             World world = base.getWorld();
             Location targetLoc = target.getLocation();
             
@@ -642,14 +711,15 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             if (attacksRemaining > 0) {
                 // Attacks 1 and 2: Blind + 1 damage
                 target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, BLINDNESS_DURATION_TICKS, BLINDNESS_AMPLIFIER));
+                Cooldowns.setCooldown("silenced", target.getUniqueId(), 1000);
                 target.damage(ATTACK_1_2_DAMAGE, owner);
                 
                 // Effects
-                world.playSound(targetLoc, Sound.ENTITY_BAT_HURT, 0.5f, 1.2f);
+                world.playSound(targetLoc, Sound.ENTITY_BAT_HURT, 0.2f, 1.2f);
                 world.spawnParticle(Particle.SQUID_INK, targetLoc.add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.01);
                 
             } else {
-                // Attack 3: Explosion + 4 damage
+                // Attack 3: Explosion + 3 damage
                 explodeAndRemove();
             }
         }
@@ -685,7 +755,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             // Check collision
             if (distance < 1.5) {
                 homingTarget.damage(ATTACK_3_DAMAGE, owner);
-                homingTarget.getWorld().playSound(homingTarget.getLocation(), Sound.ENTITY_BAT_DEATH, 0.8f, 0.6f);
+                homingTarget.getWorld().playSound(homingTarget.getLocation(), Sound.ENTITY_BAT_DEATH, 0.3f, 0.6f);
                 homingTarget.getWorld().spawnParticle(Particle.EXPLOSION, homingTarget.getLocation().add(0, 1, 0), 1);
                 
                 beginReturnToOrbit();
@@ -750,7 +820,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             homingTarget = target;
             returnCallback = onReturn;
             
-            base.getWorld().playSound(base.getLocation(), Sound.ENTITY_BAT_LOOP, 0.6f, 1.5f);
+            base.getWorld().playSound(base.getLocation(), Sound.ENTITY_BAT_LOOP, 0.5f, 1.5f);
         }
         
         private void resetForOrbit() {
@@ -760,6 +830,12 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             orbitReturnTarget = null;
             attacksRemaining = 3;
             ticksAlive = 0;
+            
+            // Clear all target cooldowns for this bird's owner so targets can be attacked again
+            for (UUID targetUUID : new HashSet<>(recentlyAttacked)) {
+                clearTargetCooldown(targetUUID);
+            }
+            recentlyAttacked.clear();
             
             // New orbit parameters for variety
             orbitAngle = Math.random() * Math.PI * 2;
@@ -783,7 +859,7 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
             World world = loc.getWorld();
             
             // Explosion effect
-            world.playSound(loc, Sound.ENTITY_BAT_DEATH, 0.8f, 0.5f);
+            world.playSound(loc, Sound.ENTITY_BAT_DEATH, 0.2f, 0.5f);
             world.spawnParticle(Particle.EXPLOSION, loc, 1);
             world.spawnParticle(Particle.SMOKE, loc, 10, 0.3, 0.3, 0.3, 0.05);
             
@@ -793,6 +869,12 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
                     ((LivingEntity) entity).damage(ATTACK_3_DAMAGE, owner);
                 }
             }
+            
+            // Clear cooldowns before removing
+            for (UUID targetUUID : new HashSet<>(recentlyAttacked)) {
+                clearTargetCooldown(targetUUID);
+            }
+            recentlyAttacked.clear();
             
             remove();
         }
@@ -824,6 +906,9 @@ public class CarrionCall extends BeangameItem implements BGLClickableI, BGMPTali
         }
         
         public void remove() {
+            for (Map<UUID, Long> ownerCooldowns : targetAttackCooldowns.values()) {
+                ownerCooldowns.remove(ownerUUID);
+            }
             if (base.isValid()) base.remove();
             if (headDisplay.isValid()) headDisplay.remove();
             if (leftWing.isValid()) leftWing.remove();

@@ -3,6 +3,7 @@ package com.beangamecore.items;
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.damage.entity.BGDDealerInvI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class VampireFang extends BeangameItem implements BGDDealerInvI {
+public class VampireFang extends BeangameItem implements BGDDealerInvI, BGResetableI {
 
     public boolean carryingVampireFang(Player player){
         for(ItemStack item : player.getInventory().getContents()){
@@ -70,7 +71,8 @@ public class VampireFang extends BeangameItem implements BGDDealerInvI {
         }
     }
 
-    public void reset(){
+    @Override
+    public void resetItem(){
         failCount.clear();
     }
 

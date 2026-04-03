@@ -124,7 +124,7 @@ public class LetItGrow extends BeangameItem implements BGRClickableI, BGDamageHe
 
     // Required interface implementations
     @Override
-    public boolean isInItemRotation() { return true; }
+    public boolean isInItemRotation() { return false; }
 
     @Override
     public CraftingRecipe getCraftingRecipe() { return null; }

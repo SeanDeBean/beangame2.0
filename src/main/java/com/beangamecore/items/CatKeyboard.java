@@ -46,6 +46,7 @@ import com.beangamecore.Main;
 import com.beangamecore.commands.PvpToggleCommand;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.items.type.talisman.BGLPTalismanI;
 import com.beangamecore.util.Cooldowns;
 import com.beangamecore.util.ItemNBT;
@@ -53,12 +54,13 @@ import com.beangamecore.util.ItemNBT;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class CatKeyboard extends BeangameItem implements BGRClickableI, BGLPTalismanI {
+public class CatKeyboard extends BeangameItem implements BGRClickableI, BGLPTalismanI, BGResetableI {
    
     private final Map<UUID, List<NoteType>> noteQueue = new HashMap<>();
     private final Map<UUID, Map<UUID, Integer>> enemyNoteHits = new HashMap<>();
 
-    public void clearNotes(){
+    @Override
+    public void resetItem(){
         noteQueue.clear();
         enemyNoteHits.clear();
     }

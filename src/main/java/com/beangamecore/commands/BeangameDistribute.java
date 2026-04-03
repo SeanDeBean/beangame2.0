@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import com.beangamecore.LevelingSystem;
 import com.beangamecore.items.Revive;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.registry.BeangameItemRegistry;
@@ -122,6 +123,7 @@ public class BeangameDistribute implements CommandExecutor {
             // Prepare reusable items
             ItemStack backgroundglass = createBackgroundGlass();
             ItemStack rerollicon = createRerollIcon();
+            LevelingSystem ls = Main.getPlugin().getLevelingSystem();
             
             while (!playerProcessQueue.isEmpty() && processed < PLAYER_BATCH_SIZE) {
                 Player player = playerProcessQueue.poll();
@@ -131,8 +133,10 @@ public class BeangameDistribute implements CommandExecutor {
                 
                 if (player.getGameMode() == GameMode.SURVIVAL) {
                     processSurvivalPlayer(player, beangameItems, backgroundglass, rerollicon);
+                    ls.onRoll(player);
                 } else if (player.getGameMode() == GameMode.SPECTATOR && Revive.noRevive.contains(player.getUniqueId())) {
                     processSpectatorPlayer(player);
+                    ls.onRoll(player);
                 }
                 
                 processed++;

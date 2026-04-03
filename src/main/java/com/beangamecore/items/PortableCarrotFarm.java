@@ -68,7 +68,7 @@ public class PortableCarrotFarm extends BeangameItem implements BGLPTalismanI {
             "§3Automatically adds to inventory.",
             "",
             "§3Talisman",
-            "§5Food",
+            "§2Food",
             "§9§obeangame"
         );
     }

@@ -30,6 +30,7 @@ public class Prickleplate extends BeangameItem implements BGDamageArmorI, BGArmo
     @Override
     public void applyArmorEffects(Player player, ItemStack item) {
         player.setArrowsInBody(100);
+        player.setArrowCooldown(5*20);
     }
 
     @Override
@@ -65,6 +66,7 @@ public class Prickleplate extends BeangameItem implements BGDamageArmorI, BGArmo
 
             try {
                 target.damage(1.0, entity);
+                target.setArrowsInBody(target.getArrowsInBody() + 1);
             } catch (Exception e) {
                 Bukkit.getLogger().warning("Prickleplate failed to damage " + target.getType() + ": " + e.getMessage());
             }

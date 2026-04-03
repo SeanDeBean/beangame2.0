@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGLClickableI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import org.bukkit.Color;
 import org.bukkit.GameMode;
@@ -21,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.util.Vector;
 
-public class Baleout extends BeangameItem implements BGLClickableI {
+public class Baleout extends BeangameItem implements BGLClickableI, BGResetableI {
     
     @Override
     public void onLeftClick(PlayerInteractEvent event, ItemStack item){
@@ -55,7 +56,8 @@ public class Baleout extends BeangameItem implements BGLClickableI {
         );
     }
 
-    public void removeAllBales(){
+    @Override
+    public void resetItem(){
         for(BaleoutProjectile bale : BaleoutProjectile.getBales()){
             bale.remove();
         }

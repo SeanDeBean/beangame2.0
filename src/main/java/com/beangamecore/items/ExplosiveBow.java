@@ -2,6 +2,7 @@ package com.beangamecore.items;
 
 import com.beangamecore.Main;
 import com.beangamecore.items.generic.BeangameBow;
+import com.beangamecore.items.type.general.BG2tTickingI;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,9 +25,10 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.util.Vector;
 
-public class ExplosiveBow extends BeangameBow {
+public class ExplosiveBow extends BeangameBow implements BG2tTickingI {
     
-    public void explosivebowParticles(){
+    @Override
+    public void tick(){
         for(Projectile projectile : getArrows()){
             if(projectile.isOnGround() || projectile.isDead()){
                 removeArrow(projectile);

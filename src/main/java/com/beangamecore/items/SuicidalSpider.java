@@ -12,6 +12,8 @@ import com.beangamecore.entities.tntspider.Gait;
 import com.beangamecore.entities.tntspider.Spider;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BG1tTickingI;
+
 import org.bukkit.*;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderCrystal;
@@ -29,7 +31,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 
-public class SuicidalSpider extends BeangameItem implements BGRClickableI {
+public class SuicidalSpider extends BeangameItem implements BGRClickableI, BG1tTickingI {
     
     @Override
     public boolean onRightClick(PlayerInteractEvent event, ItemStack itemStack){
@@ -53,7 +55,8 @@ public class SuicidalSpider extends BeangameItem implements BGRClickableI {
 
     Random random = new Random();
 
-    public void suicidespiderUpdateSpiders() {
+    @Override
+    public void tick() {
         List<Spider> toRemove = new ArrayList<>();
 
         for (Spider instance : Spider.spiders) {

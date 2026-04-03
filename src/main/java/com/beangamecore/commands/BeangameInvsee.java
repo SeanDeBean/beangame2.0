@@ -221,7 +221,7 @@ public class BeangameInvsee implements CommandExecutor {
             meta.setDisplayName("§eInventory Information");
             meta.setLore(java.util.Arrays.asList(
                  "§7Player: §f" + target.getName(),
-                "§7Health: §f" + String.format("%.1f", target.getHealth()) + "§7/§f" + String.format("%.1f", target.getAttribute(Attribute.MAX_HEALTH)),
+                "§7Health: §f" + String.format("%.1f", target.getHealth()) + "§7/§f" + String.format("%.1f", target.getAttribute(Attribute.MAX_HEALTH).getValue()),
                 "§7Food: §f" + target.getFoodLevel() + "§7/20",
                 "§7Gamemode: §f" + target.getGameMode().name()
             ));

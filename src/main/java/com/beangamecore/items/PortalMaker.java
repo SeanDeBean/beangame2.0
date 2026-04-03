@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
+import com.beangamecore.items.type.general.BG1sTickingI;
+import com.beangamecore.items.type.general.BGResetableI;
 import com.beangamecore.util.BlockCategories;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -36,7 +38,7 @@ import org.bukkit.util.Vector;
 
 import com.beangamecore.Main;
 
-public class PortalMaker extends BeangameItem implements BGRClickableI {
+public class PortalMaker extends BeangameItem implements BGRClickableI, BG1sTickingI, BGResetableI {
     private static Map<UUID, Long> portalmakerteleportcd = new HashMap<>();
 
     @Override
@@ -197,7 +199,8 @@ public class PortalMaker extends BeangameItem implements BGRClickableI {
         targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 0);
     }
 
-    public void portalmakerResetAll() {
+    @Override
+    public void resetItem() {
         NamespacedKey portalKey = new NamespacedKey(Main.getPlugin(), "portalmaker_beangame");
         
         for (World world : Bukkit.getServer().getWorlds()) {
@@ -210,7 +213,8 @@ public class PortalMaker extends BeangameItem implements BGRClickableI {
         }
     }
 
-    public void portalmakerParticles() {
+    @Override
+    public void tick() {
         NamespacedKey portalKey = new NamespacedKey(Main.getPlugin(), "portalmaker_beangame");
         NamespacedKey nameKey = new NamespacedKey(Main.getPlugin(), "name_beangame");
         

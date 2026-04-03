@@ -23,7 +23,7 @@ public class PotionCategories {
     }
 
     private static Set<String> harmfulCustomPotions = new HashSet<>(Arrays.asList(
-        "silenced", "schizophrenic", "use_item", "slot_enforced", "immobilized", "jumbling", "redacted"
+        "silenced", "schizophrenic", "use_item", "slot_enforced", "immobilized", "jumbling", "redacted", "attack"
     ));
         
 }

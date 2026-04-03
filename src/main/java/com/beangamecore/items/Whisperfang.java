@@ -29,11 +29,12 @@ import org.bukkit.util.Vector;
 import com.beangamecore.items.generic.BeangameItem;
 import com.beangamecore.items.type.BGRClickableI;
 import com.beangamecore.items.type.damage.entity.BGDDealerInvI;
+import com.beangamecore.items.type.general.BGResetableI;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class Whisperfang extends BeangameItem implements BGDDealerInvI, BGRClickableI {
+public class Whisperfang extends BeangameItem implements BGDDealerInvI, BGRClickableI, BGResetableI {
 
     private final Map<UUID, WeakReference<LivingEntity>> lastHitTargets = new HashMap<>();
 
@@ -147,7 +148,8 @@ public class Whisperfang extends BeangameItem implements BGDDealerInvI, BGRClick
         }
     }
 
-    public void clearAll() {
+    @Override
+    public void resetItem() {
         lastHitTargets.clear();
     }
 
